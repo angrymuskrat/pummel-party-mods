@@ -13,7 +13,7 @@ description: Use when a Pummel Party mod needs more than the official Mod Editor
 
 ## Шаг 1 — определить бэкенд
 
-Папка игры: `<Steam>\steamapps\common\Pummel Party\`.
+Папка игры: `C:\Program Files (x86)\Steam\steamapps\common\Pummel Party\`.
 
 | Есть файл | Бэкенд | Стек |
 | --- | --- | --- |
@@ -22,7 +22,7 @@ description: Use when a Pummel Party mod needs more than the official Mod Editor
 
 Версию Unity взять из `Pummel Party.exe` (свойства файла) или `Pummel Party_Data\globalgamemanagers`; от неё зависит, какой .NET target брать для плагина.
 
-На 2026-10-21 бэкенд не проверен: игра не установлена на рабочем ПК. Первый шаг любой сессии по этому скиллу — проверить таблицу выше и записать результат в этот файл.
+Проверено 2026-10-21: **Mono**. `PummelParty_Data\Managed\Assembly-CSharp.dll` (4.3 МБ), рантайм `MonoBleedingEdge`, Unity **2021.3.45f2**, Steamworks через `com.rlabrecque.steamworks.net.dll`. Папка данных называется `PummelParty_Data` (без пробела). Значит: BepInEx 5.x, HarmonyX, плагин под `net472`, декомпиляция ILSpy напрямую.
 
 ## Шаг 2 — декомпилировать и найти точку патча
 

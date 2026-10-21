@@ -294,7 +294,28 @@ Prefab — переиспользуемая группа GameObjects (под-и�
 
 Каждый мод редактора лежит в своей папке с именем мода. Разработчик советует делать резервную копию этой папки перед **File > Delete Mod**. Пользовательский ответ (2024) указывает ту же папку и для скачанных workshop-модов, с оговоркой «видны только unlocked-моды» — т.е. в редакторе доступны для открытия только unlocked; где именно лежат подписки (эта папка или `steamapps\workshop\content\880940`), **не задокументировано**. PCGamingWiki подтверждает базовую папку сохранений `%USERPROFILE%\AppData\LocalLow\Rebuilt Games\Pummel Party\`. Steam AppID игры — 880940.
 
-**Формат файлов проекта: не задокументирован.** Ни вики, ни обсуждения не называют формат (JSON, бинарный, расширения файлов). Единственный документированный текстовый формат — экспорт/импорт custom lighting profile в **`.json`** (Lighting_Settings). Папка `Mods` в каталоге установки игры (`steamapps\common\Pummel Party\Mods`) относится к сторонним загрузчикам (MelonLoader/BepInEx), а не к Mod Editor. Для уточнения формата нужно заглянуть в `WorkshopMods` на машине с созданным модом.
+**Формат файлов проекта (проверено на диске 2026-10-21, мод из шаблона Minimal Third Person):**
+
+```
+WorkshopMods/<Name>/
+  Assets/Props/<name>.obj + <name>.obj.pmeta      # импортированные ассеты как есть + JSON-метаданные
+  Assets/Textures/<name>.png + .pmeta             # pmeta: guid, tags, assetFolder, настройки импорта
+  Assets/Audio/<name>.wav + .pmeta                #   (m_recalculateNormals, m_compression, m_filter, m_wrapMode)
+  Data/Meta.json                 # Name, ModType (3 = minigame), LastModified, пресеты света/постобработки, IsUnlocked
+  Data/ModSettings.json          # все Mod Settings: SimpleMinigameSettings + SimpleModPlayerSettings, включая Event Triggers с массивами m_actions
+  Data/MinigameDefinitionData.json  # имя, описание, Min/MaxPlayers, подсказки по управлению
+  Data/WorkshopItem.json         # title, description, visibility, tags, publishedFileId
+  Data/Lighting.json             # освещение
+  Data/PostProcessing.data       # бинарный
+  Data/MainScene.scene           # БИНАРНЫЙ, сигнатура `PMH`: имена объектов, компоненты вида `ModTransform$<guid>`, `ModProp$<guid>`
+  Data/Preview.jpg
+```
+
+Бинарный формат сцены и префабов разобран, см. `scene-format.md`; парсер — `tools/pmscene.py`, генератор модов — `tools/pmgen.py`. Старое описание ниже оставлено как история вопроса.
+
+**Образцы в папке игры** (`PummelParty_Data\StreamingAssets\`, проверено 2026-10-21): `WorkshopTemplates\Minigames\` — шесть шаблонов мини-игр, `WorkshopTemplates\Boards\` — `Minimal Board` и `Advanced Board`; `InbuiltMods\` — пять мини-игр базовой игры в формате мода (`Aftershock Arena`, `Foggy Fall`, `House Hunting`, `Pummel Prison`, `Pummel Punch`), все с `IsUnlocked: true` в `Meta.json`. Это и есть кандидаты на «адаптацию существующих»: проверить, открываются ли они в редакторе как шаблоны. Их `MainScene.scene` (45–320 КБ) — лучшие образцы бинарного формата для разбора.
+
+**Формат файлов проекта (по вики): не задокументирован.** Ни вики, ни обсуждения не называют формат (JSON, бинарный, расширения файлов). Единственный документированный текстовый формат — экспорт/импорт custom lighting profile в **`.json`** (Lighting_Settings). Папка `Mods` в каталоге установки игры (`steamapps\common\Pummel Party\Mods`) относится к сторонним загрузчикам (MelonLoader/BepInEx), а не к Mod Editor. Для уточнения формата нужно заглянуть в `WorkshopMods` на машине с созданным модом.
 
 ---
 

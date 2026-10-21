@@ -10,7 +10,8 @@
 4. **Проектировать только из того, что реально есть в редакторе.** Источник правды — `.claude/skills/pummel-party-mod-editor/reference/`. Если вики молчит — так и писать, не выдумывать действия и параметры.
 5. **Документация равна коду.** Утверждение о компоненте, действии, формате или пути проверяется по `reference/` (со ссылкой на страницу вики) или по игровым файлам до того, как текст считается готовым.
 6. **Ассеты генерировать воспроизводимо:** скрипт лежит рядом с результатом в `packs/<theme>/assets/`.
-7. Игра на рабочем ПК не установлена (проверено 2026-10-21). Задачи, требующие папку игры (бэкенд Mono/IL2CPP, формат проектов редактора, плейтест), — сначала спросить, где игра.
+8. **Моды собирать кодом.** Для каждой мини-игры `build_mod.py` рядом с `DESIGN.md`, на базе `tools/pmgen.py`; вывод в `WorkshopMods`. Редактор — для плейтеста, скриншотов и публикации. Новые компоненты и действия добавлять в `pmgen.py` по `scene-format.md`.
+7. Игра установлена: `C:\Program Files (x86)\Steam\steamapps\common\Pummel Party\` (Steam, проверено 2026-10-21). Папка данных — `PummelParty_Data` без пробела. Бэкенд Mono, Unity 2021.3.45f2. Проекты редактора — `%USERPROFILE%\AppData\LocalLow\Rebuilt Games\Pummel Party\WorkshopMods\`.
 
 ## 2. Классификатор задач → скиллы
 
@@ -34,11 +35,12 @@
   pummel-party-themed-pack/  # процесс: тема → доска → мини-игры → ассеты
   pummel-party-bepinex/      # неофициальный код-путь
   grilling/ simplest-fix-first/ feynman/ deep-investigation/ pre-ship/   # общие, перенесены из synapse
-packs/<theme>/               # по паку на тему: PACK.md, board/, minigames/, assets/
+packs/<theme>/               # по паку на тему: PACK.md, board/, minigames/ (DESIGN.md + build_mod.py), assets/
+tools/pmscene.py             # парсер/сериализатор MainScene.scene и .pfab (PMH)
+tools/pmgen.py               # генератор модов: сцена, префабы, ассеты с .pmeta, материалы, ModSettings
 mods/<name>/                 # только для BepInEx-плагинов
 ```
 
 ## 4. Открытые вопросы
 
-- Бэкенд игры (Mono или IL2CPP) — проверить по папке игры, записать в `pummel-party-bepinex/SKILL.md`.
-- Формат сохранения проектов Mod Editor: папка известна — `%USERPROFILE%\AppData\LocalLow\Rebuilt Games\Pummel Party\WorkshopMods\<имя мода>\` (ответ разработчика в Steam-обсуждении, см. `editor-workflow.md` §9), формат файлов внутри не задокументирован. Если текст (JSON/YAML), Claude сможет генерировать сцены напрямую. Проверить после первого сохранения мода.
+- Генерация модов кодом подтверждена плейтестом (2026-10-21): Ticket Rush Gen собран `build_mod.py`, в игре работают предметы, триггеры, спавнеры, материалы, таймер. Новые мини-игры делать через `tools/pmgen.py`, а не мышкой.
