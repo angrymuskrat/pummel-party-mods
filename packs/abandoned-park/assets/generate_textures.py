@@ -212,12 +212,30 @@ def acid_water(rng):
     return px
 
 
+def dirt(rng):
+    """Сухая земля для заднего плана: коричневая база, пятна травы и пыли."""
+    noise = fbm(rng, SIZE)
+    fine = value_noise(rng, SIZE, 128)
+    dark, light, grass = (78, 58, 38), (132, 108, 72), (95, 105, 50)
+    px = []
+    for y in range(SIZE):
+        row = []
+        for x in range(SIZE):
+            c = mix(dark, light, 0.5 * noise[y][x] + 0.5 * fine[y][x])
+            if noise[y][x] > 0.58:
+                c = mix(c, grass, min(1.0, (noise[y][x] - 0.58) / 0.15))
+            row.append(c)
+        px.append(row)
+    return px
+
+
 TEXTURES = {
     "rust_booth": rust_booth,
     "concrete": concrete,
     "rust_metal": rust_metal,
     "carousel_paint": carousel_paint,
     "acid_water": acid_water,
+    "dirt": dirt,
 }
 
 

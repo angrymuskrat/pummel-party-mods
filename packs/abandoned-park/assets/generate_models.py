@@ -369,6 +369,81 @@ def mascot_headless():
     return m
 
 
+def lamppost():
+    """Парковый фонарь 5 м: основание, столб, кронштейн, покосившийся плафон."""
+    m = Mesh()
+    m.group = "base"
+    m.add_cylinder((0, 0.15, 0), 0.3, 0.3, segments=8)
+    m.group = "pole"
+    m.add_cylinder((0, 2.6, 0), 0.08, 4.9, segments=8)
+    m.group = "arm"
+    m.add_box((0.45, 4.95, 0), (0.9, 0.08, 0.08))
+    m.group = "lamp"
+    m.add_box((0.9, 4.75, 0), (0.5, 0.35, 0.5), rot=(0, 0, -12))
+    return m
+
+
+def fence_segment():
+    """Секция забора 3 м: два столба и три перекладины, одна провисла."""
+    m = Mesh()
+    m.group = "posts"
+    for x in (-1.5, 1.5):
+        m.add_box((x, 0.6, 0), (0.12, 1.2, 0.12))
+    m.group = "rails"
+    m.add_box((0, 1.05, 0), (3.0, 0.08, 0.05))
+    m.add_box((0, 0.65, 0), (3.0, 0.08, 0.05), rot=(0, 0, 6))
+    m.add_box((0, 0.25, 0), (3.0, 0.08, 0.05))
+    return m
+
+
+def barrel():
+    """Бочка 1 м: корпус и два обруча."""
+    m = Mesh()
+    m.group = "body"
+    m.add_cylinder((0, 0.5, 0), 0.4, 1.0, segments=12)
+    m.group = "hoops"
+    for y in (0.22, 0.78):
+        m.add_cylinder((0, y, 0), 0.43, 0.06, segments=12)
+    return m
+
+
+def dead_tree():
+    """Сухое дерево 6 м: ствол и четыре голых ветки."""
+    m = Mesh()
+    m.group = "trunk"
+    m.add_cylinder((0, 2.0, 0), 0.28, 4.0, segments=8)
+    m.add_cylinder((0, 4.6, 0), 0.16, 1.6, segments=8)
+    m.group = "branches"
+    for angle, y, tilt, length in ((0, 3.2, 40, 2.2), (110, 3.9, 50, 1.8), (210, 4.4, 35, 2.0), (300, 2.6, 55, 1.5)):
+        r = math.radians(angle)
+        dx, dz = math.sin(r) * length * 0.35, math.cos(r) * length * 0.35
+        m.add_cylinder((dx, y + length * 0.3, dz), 0.08, length, segments=6, rot=(tilt * math.cos(r), 0, -tilt * math.sin(r)))
+    return m
+
+
+def hill():
+    """Низкополигональный холм радиусом 25, высотой 8, рваный край; для заднего плана."""
+    import random
+    m = Mesh()
+    m.group = "hill"
+    m.add_cone((0, 0, 0), 25.0, 8.0, segments=16, rim_jitter=0.12, rng=random.Random("hill"), uv_scale=0.1)
+    return m
+
+
+def coaster_trestle():
+    """Опора заброшенных горок 10 м: две наклонные ноги, три поперечины, площадка под рельсы."""
+    m = Mesh()
+    m.group = "legs"
+    for sign in (-1, 1):
+        m.add_box((sign * 1.2, 5.0, 0), (0.3, 10.2, 0.3), rot=(0, 0, sign * -7))
+    m.group = "beams"
+    for y, w in ((2.5, 3.2), (5.5, 2.6), (8.5, 2.0)):
+        m.add_box((0, y, 0), (w, 0.2, 0.2))
+    m.group = "deck"
+    m.add_box((0, 10.1, 0), (2.0, 0.3, 2.4))
+    return m
+
+
 MODELS = {
     "ticket": ticket,
     "booth": booth,
@@ -380,6 +455,12 @@ MODELS = {
     "cart": cart,
     "rail_segment": rail_segment,
     "mascot_headless": mascot_headless,
+    "lamppost": lamppost,
+    "fence_segment": fence_segment,
+    "barrel": barrel,
+    "dead_tree": dead_tree,
+    "hill": hill,
+    "coaster_trestle": coaster_trestle,
 }
 
 

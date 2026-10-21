@@ -67,7 +67,7 @@ JSON действия: `m_type`, `m_version: 0`, у `TargetAction` — `m_target
 - `ModLogic`: Triggers: ModLogicTrigger[].
 - `ModPlayerSpawn`: SharedSpawn: bool, SpawnUsageType: flags (Initial 1, Respawn 2), AllowedPlayers: flags 8 бит, SpawnShape (Point 0, Line 1, Circle 2), PlayerCountMask: flags 8 бит, SpawnDistribution (Step 0, Random 1), LineLength, Radius: float, Advanced: bool.
 - `ModSpawner`: Prefabs: ref[], PrefabGUIDs: string[], Interval1, Delay: ComplexFloat (JSON), Type (AlwaysSpawn 0, SpawnOnDestruction 1), LocationType: flags (OnSpawner 1, OnTargets 2), SpawnPoints: ref[] (GUID `ModTransform`), SpawnCount: int.
-- `ModMover`: DirectionType, Direction, Speed, RotationAxisType, RotationAxis, RotationSpeed (перечисления направлений не выписаны).
+- `ModMover`: DirectionType (Up 0, Down 1, Left 2, Right 3, Forward 4, Back 5, Custom 6 — локальные оси объекта, Custom = вектор Direction), Direction, Speed (ед/с), RotationAxisType (X 0, Y 1, Z 2, Custom 3 — мировые оси, `Rotate(axis, speed·dt, Space.World)`), RotationAxis (только при Custom), RotationSpeed (град/с).
 - `ModWater`: Width, Height: int, CellSize: float, DeepColor, ShallowColor, FrothColor: Color, WaveHeight, WaveSpeed: float.
 - `ModItem`: ItemType (Carried 0, Weapon 1, Worn 2, Pickup 3), WeaponInfo: JSON ModWeaponInfo, ItemPrefab: ref + ItemPrefabGUID: string (визуальный префаб), … , OnPickupTrigger/OnDropTrigger/OnUseTrigger/OnWhileHeldTrigger: ModLogicTrigger, ItemSlot: enum. Пример из игры (HealthKit): Pickup, CanBeDropped false, DisappearWhenDropped true, AutoDropAfterTime true, OnPickup → ChangeHealth Source Add 40.
 - `ModBoxCollider`: center, size. `ModNote`: Text. `ModPrefabInstance`: PrefabReference: ref, PrefabGUID: string.

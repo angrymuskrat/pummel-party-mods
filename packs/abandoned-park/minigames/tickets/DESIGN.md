@@ -23,10 +23,17 @@
 | `KillVolume` | `Trigger Component` (`Box`, чуть ниже уровня воды) | событие `On Enter` → см. логику |
 | `Spawn_Ring` | `Player Spawn Component` (`Spawn Shape` = `Circle`, радиус 15, `Spawn Usage Type` = `InitialSpawn`) | 8 игроков по кругу |
 | `Respawn_*` (4 шт.) | `Player Spawn Component` (`Spawn Usage Type` = `Respawn`) | по углам карты |
-| `Ticket` (префаб) | корень: `Item Component`; дочерний визуал — `Prop Component` | `Item Type` = `Pickup`, `Unique Pickup` вкл. |
+| `Ticket Item` / `Ticket Visual` (префабы) | предмет: `Item Component`; визуал: `Prop Component` | `Item Type` = `Pickup`; визуал стоит вертикально с наклоном 15° (`rotation` 90, 0, 15), на 0.15 выше точки спавна |
 | `TicketSpawner_*` (10–12 шт.) | `Spawner Component` | `Type` = `Spawn On Destruction`, `Delay` 4–8 с (случайный), `Spawn Count` 1, `Prefabs` = [`Ticket`], `Locations` = `OnSpawner` |
 | `JumpPad_*` (2–3 шт.) | `Trigger Component` (`Box`) + `Prop Component` (плоский цилиндр) | ускоряют переходы через пруд |
-| `FerrisWheel` | `Prop Component` + `Mover Component` (`Rotation Axis` Z, `Rotation Speed` 10) | декор, якорь темы, без коллизии |
+| `FerrisWheel` | `Prop Component` + `Mover Component` (`Rotation Axis Type` Z, `Rotation Speed` 10) | стоит на полу у дальнего края (0, 7.25, −17), без коллизии |
+| `Decor/Lamppost_*` (8) | `Prop Component` (Box) | фонари между киосками на радиусе 16, два покосились |
+| `Decor/Barrel_*` (10), `Decor/Debris_*` (12) | `Prop Component` | бочки у киосков (Box), обломки без коллизии |
+| `Decor/Fence/*` (52) | `Prop Component` (Box) | забор по периметру пола 40×40, секции по 3 м |
+| `Backdrop/OuterGround` | `Prop Component` (Plane ×18, без коллизии) | земля вокруг пола |
+| `Backdrop/FallVolume` | `Trigger Component` (Box 400×4×400 на y=−8) | `On Enter` → `Kill/Destroy`: упал за забор — умер |
+| `Backdrop/Hill_*` (12), `DeadTree_*` (16) | `Prop Component` без коллизии | холмы на радиусе 58–72, деревья на 26–48 |
+| `Backdrop/RuinedCoaster` | 7 опор + 5 рельсов + упавший рельс | руины горок за колесом на z=−40, пролёт в середине обрушен |
 
 ## Логика
 

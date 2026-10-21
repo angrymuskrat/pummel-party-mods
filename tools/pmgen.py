@@ -99,6 +99,14 @@ class VelocityDir:    # ChangeVelocityAction.VelocityDirection
     UP, DOWN, LEFT, RIGHT, FORWARD, BACKWARD, TOWARDS_SOURCE, TOWARDS_RECEIVER, CUSTOM = range(9)
 
 
+class MoverDir:       # ModMover.ModMoverDirection (движение по локальной оси объекта; Custom — вектор m_direction)
+    UP, DOWN, LEFT, RIGHT, FORWARD, BACK, CUSTOM = range(7)
+
+
+class MoverAxis:      # ModMover.ModMoverRotationAxis (ось в мировых координатах, Space.World)
+    X, Y, Z, CUSTOM = range(4)
+
+
 class Trigger:        # ModTriggerType
     NONE, START, ENABLE, UPDATE, HIT, WEAPON_HIT, TIMER, BOARD_SPACE, ROUND_START, ROUND_END = (
         0, 32, 40, 48, 64, 80, 96, 112, 128, 144)
@@ -400,10 +408,10 @@ class Obj:
         ])
         return self
 
-    def mover(self, direction_type=4, direction=(0, 0, 1), speed=0.0, rotation_axis_type=0,
+    def mover(self, direction_type=MoverDir.CUSTOM, direction=(0, 0, 0), speed=0.0, rotation_axis_type=MoverAxis.Y,
               rotation_axis=(0, 1, 0), rotation_speed=0.0) -> Obj:
-        """direction_type / rotation_axis_type — ModMover.ModMoverDirection / ModMoverRotationAxis
-        (перечисления не выписаны: 4 = Custom по примеру из Pummel Prison — не проверено)."""
+        """Update: position += speed * dir (dir по MoverDir, локальные оси объекта); Rotate(axis, rotation_speed, Space.World).
+        rotation_axis используется только при MoverAxis.CUSTOM."""
         self._comp("ModMover", [
             ("DirectionType", enc_i32(direction_type)),
             ("Direction", enc_vec3(direction)),
