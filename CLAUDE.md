@@ -11,13 +11,14 @@
 5. **Документация равна коду.** Утверждение о компоненте, действии, формате или пути проверяется по `reference/` (со ссылкой на страницу вики) или по игровым файлам до того, как текст считается готовым.
 6. **Ассеты генерировать воспроизводимо:** скрипт лежит рядом с результатом в `packs/<theme>/assets/`.
 8. **Моды собирать кодом.** Для каждой мини-игры `build_mod.py` рядом с `DESIGN.md`, на базе `tools/pmgen.py`; вывод в `WorkshopMods`. Редактор — для плейтеста, скриншотов и публикации. Новые компоненты и действия добавлять в `pmgen.py` по `scene-format.md`.
-7. Игра установлена: `C:\Program Files (x86)\Steam\steamapps\common\Pummel Party\` (Steam, проверено 2026-10-21). Папка данных — `PummelParty_Data` без пробела. Бэкенд Mono, Unity 2021.3.45f2. Проекты редактора — `%USERPROFILE%\AppData\LocalLow\Rebuilt Games\Pummel Party\WorkshopMods\`.
+7. Игра установлена через Steam (проверено 2026-10-21). Папка данных — `PummelParty_Data` без пробела. Бэкенд Mono, Unity 2021.3.45f2. Проекты редактора — `%USERPROFILE%\AppData\LocalLow\Rebuilt Games\Pummel Party\WorkshopMods\`. Конкретные пути этой машины (игра, логи, Python, декомпиляция) — в `CLAUDE.local.md` (не в git). В отслеживаемые файлы абсолютные пути с именем пользователя не писать.
 
 ## 2. Классификатор задач → скиллы
 
 | Класс | Сигналы | Цепочка | Не брать |
 | --- | --- | --- | --- |
-| **A. Новый пак / доска / мини-игра** | «придумай», «сделай карту», «мини-игра про…» | `pummel-party-themed-pack` → при неясной теме `grilling` → спецификации | `brainstorming` (его заменяет `grilling`), `writing-plans` |
+| **A. Новый пак / доска / мини-игра** | «придумай», «сделай карту», «мини-игра про…» | `pummel-party-themed-pack` → при неясной теме `grilling` → спецификации; раздел «Пространство» — `pummel-party-level-design` | `brainstorming` (его заменяет `grilling`), `writing-plans` |
+| **A2. Пространство сцены** | «пусто», «скучно бегать», «больше деталей / движения», расстановка, ориентиры, задник | `pummel-party-level-design` (`plan_view.py` после каждой правки расстановки) | — |
 | **B. Разложить идею на события и действия редактора** | «как это сделать в редакторе», «какие действия нужны» | `pummel-party-mod-editor` → `simplest-fix-first` (самая простая цепочка, которая даёт механику) | — |
 | **C. Ассеты** | модель, текстура, звук, .obj | без скиллов: скрипт генерации + `ASSETS.md`; правила импорта из `pummel-party-mod-editor/reference/editor-workflow.md` | — |
 | **D. Отладка в редакторе** | скриншот Log Window / Mod Validator, «не работает», «не синхронизируется» | `deep-investigation` → `simplest-fix-first`; объяснение — `feynman` | `systematic-debugging` |
@@ -33,6 +34,7 @@
 .claude/skills/
   pummel-party-mod-editor/   # справочник по редактору + reference/ (выжимка вики)
   pummel-party-themed-pack/  # процесс: тема → доска → мини-игры → ассеты
+  pummel-party-level-design/ # масштаб, маршруты, слои деталей, движение; scripts/plan_view.py — план сверху + метрики
   pummel-party-bepinex/      # неофициальный код-путь
   grilling/ simplest-fix-first/ feynman/ deep-investigation/ pre-ship/   # общие, перенесены из synapse
 packs/<theme>/               # по паку на тему: PACK.md, board/, minigames/ (DESIGN.md + build_mod.py), assets/

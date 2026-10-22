@@ -1,8 +1,10 @@
 """Собирает мод Ticket Rush по DESIGN.md в папку WorkshopMods редактора.
 
-Запуск из корня репозитория:  python packs/abandoned-park/minigames/tickets/build_mod.py [имя мода]
-По умолчанию пишет «Ticket Rush Gen», чтобы не трогать мод, собранный руками.
+Запуск из корня репозитория:  python packs/abandoned-park/minigames/tickets/build_mod.py [имя мода] [папка WorkshopMods]
+По умолчанию пишет «Ticket Rush» в WorkshopMods редактора. Сцену, настройки и ассеты пересобирает целиком; превью
+(Data/Preview.jpg после сохранения в редакторе), Preview Image мини-игры и данные Workshop сохраняет (pmgen.Mod.write).
 """
+import copy
 import math
 import os
 import random
@@ -10,19 +12,44 @@ import sys
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "..", ".."))
 sys.path.insert(0, os.path.join(ROOT, "tools"))
+sys.path.insert(0, os.path.join(ROOT, ".claude", "skills", "pummel-party-level-design", "scripts"))
 from pmgen import *  # noqa: E402,F403
+import navgen  # noqa: E402
+import plan_view  # noqa: E402
 
 ASSETS = os.path.join(ROOT, "packs", "abandoned-park", "assets")
 WORKSHOP = r"%USERPROFILE%\AppData\LocalLow\Rebuilt Games\Pummel Party\WorkshopMods"
 HALF = 20.0  # игровой пол 40×40
+CORNERS = ((1, 1), (-1, 1), (1, -1), (-1, -1))  # знаки x/z угловых сцен, совпадают с Respawn_0..3
+CAROUSEL = (4.0, 0.0, -5.0)                     # центр самой большой пустой площадки по plan_view
+BARRIER_AT = (-7.0, 6.0)                        # где ящики режут коридор вдоль каждой стороны забора
+BOOTH_TOP = 2.36          # верх коллизии Box киоска (габарит booth.obj)
+PAD_SPEED = 16.0          # батут: Set Up 16 м/с → подъём v²/2g = 5.1 м при гравитации игрока 25
+PAD_R = (9.6,) * 7 + (9.8,)   # батут перед каждым киоском; седьмой дальше, чтобы лошадки карусели его не задевали
+CAROUSEL_ROOF_Y = 2.6     # низ крыши карусели; верх коллизии = 2.6 + 4.35·0.25 ≈ 3.69
+TICKET_DELAY = (6.0, 11.0)    # секунд до нового билета после подбора (было 4–8)
 
 
-def build(name: str) -> str:
+def booth_angle(i):
+    return 2 * math.pi * i / 8 + math.pi / 16
+
+
+HERE = os.path.dirname(os.path.abspath(__file__))
+
+
+def build(name: str, workshop: str = WORKSHOP) -> str:
     rng = random.Random("ticket-rush")
+    rng2 = random.Random("ticket-rush-space")  # для объектов из раздела «Пространство», чтобы не сдвигать прежнюю раскладку
     mod = Mod(name, description="Rusted Park: collect tickets in the ruined fairground. / Билетики: собери больше всех билетов.",
               round_duration=60, end_conditions=EndCondition.TIMER, placement=Placement.MOST_POINTS,
               settings_overrides={"respawnEnabled": True, "respawnTime": 3.0, "respawnInvulnerableTime": 2.0,
-                                  "canPunch": True, "useHealth": False})
+                                  "canPunch": True, "useHealth": True, "health": 3, "punchDamage": 1, "showHealthBar": True},
+              # смерть (3 удара или пруд) отнимает ⌈¼⌉ билетов: score·3 и деление нацело на 4 (Divide = (int)(i / 4f))
+              # дают ⌊3s/4⌋ = s − ⌈s/4⌉; Receiver в событии смерти — умерший
+              player_triggers={"onDeathTrigger": [
+                  act_change_score(3, Op.MUL, Targets.RECEIVER),
+                  act_change_score(4, Op.DIV, Targets.RECEIVER),
+                  act_show_message("-1/4 билетов / lost 1/4 of tickets", 2.0, MsgTarget.TARGET, Targets.RECEIVER)]})
 
     # --- ассеты
     def prop(fn): return mod.add_file_asset("prop", os.path.join(ASSETS, "models", fn))
@@ -31,17 +58,25 @@ def build(name: str) -> str:
     lamp_obj, fence_obj, barrel_obj = prop("lamppost.obj"), prop("fence_segment.obj"), prop("barrel.obj")
     tree_obj, hill_obj, trestle_obj = prop("dead_tree.obj"), prop("hill.obj"), prop("coaster_trestle.obj")
     rail_obj, debris_obj = prop("rail_segment.obj"), prop("debris.obj")
+    horse_obj, roof_obj, cart_obj = prop("horse.obj"), prop("carousel_roof.obj"), prop("cart.obj")
     pickup_wav = mod.add_file_asset("audio", os.path.join(ASSETS, "audio", "ticket_pickup.wav"))
     rust_mat = mod.add_material("RustBooth", tex("rust_booth.png"), tiling=(2.0, 2.0))
     concrete_mat = mod.add_material("Concrete", tex("concrete.png"), tiling=(8.0, 8.0))
     metal_mat = mod.add_material("RustMetal", tex("rust_metal.png"), tiling=(1.0, 1.0))
     dirt_mat = mod.add_material("Dirt", tex("dirt.png"), tiling=(20.0, 20.0))
+    paint_mat = mod.add_material("CarouselPaint", tex("carousel_paint.png"), tiling=(1.0, 1.0))
 
     # --- префабы билета: визуал (вертикально, с наклоном 15°) и предмет
     ticket_visual = mod.add_prefab(obj("Ticket Visual", pos=(0, 0.15, 0), rot=(90, 0, 15))
                                    .prop(ticket_obj.guid, collision=Collision.NONE, tint=(1.0, 0.85, 0.3, 1)))
+    # билет — «оружие», которое исчезает в следующем кадре после подбора. Боты без оружия идут к ближайшему свободному
+    # оружию (SimpleModPlayer.UpdateTargetType), а Pickup не ищут вовсе — так боты собирают билеты. Урон обнулён:
+    # бот, успевший замахнуться билетом за этот кадр, не должен никого бить
+    ticket_weapon = copy.deepcopy(DEFAULT_WEAPON_INFO)
+    ticket_weapon["basicInfo"]["damage"] = 0
+    ticket_weapon["meleeInfo"]["damage"] = 0
     ticket_item = mod.add_prefab(obj("Ticket Item").item(
-        ItemType.PICKUP, visual_prefab_guid=ticket_visual.guid,
+        ItemType.WEAPON, visual_prefab_guid=ticket_visual.guid, weapon_info=ticket_weapon,
         on_pickup=[act_change_score(1, Op.ADD, Targets.SOURCE),
                    act_spawn_effect(Effect.SPARKLES, Targets.RECEIVER),
                    act_play_sound(pickup_wav.guid, 0.8, Targets.RECEIVER)],
@@ -56,8 +91,9 @@ def build(name: str) -> str:
         world.add(obj(f"Booth_{i}", pos=(12 * math.cos(a), 0, 12 * math.sin(a)), rot=(0, -math.degrees(a) + 90, 0),
                       layer=LAYER_WORLD_WALL).prop(booth_obj.guid, collision=Collision.BOX, materials=[rust_mat.guid]))
 
-    # колесо обозрения: стоит на полу у дальнего края, крутится вокруг мировой оси Z
-    world.add(obj("FerrisWheel", pos=(0, 7.25, -17))
+    # колесо обозрения: за южным забором на земле задника, крутится вокруг мировой оси Z. На полу (z −17) оно стояло в 2 м
+    # за спиной игрока, которого кольцевой спавн ставит в (0, −15) лицом к центру, и камера оказывалась внутри колеса
+    world.add(obj("FerrisWheel", pos=(0, 7.1, -28))
               .prop(wheel_obj.guid, collision=Collision.NONE, materials=[metal_mat.guid])
               .mover(MoverDir.CUSTOM, (0, 0, 0), 0.0, MoverAxis.Z, (0, 0, 1), 10.0))
 
@@ -68,14 +104,61 @@ def build(name: str) -> str:
         TriggerShape.BOX, size=(8, 1, 8),
         on_enter=[act_spawn_effect(Effect.EXPLOSION, Targets.SOURCE), act_kill(Targets.SOURCE)]))
 
-    # jump pad
-    for i, (x, z) in enumerate(((0, 9), (0, -9), (9, 0), (-9, 0))):
-        world.add(obj(f"JumpPad_{i}", pos=(x, 0.1, z)).prop(PROP_CUBE, collision=Collision.BOX, tint=(0.9, 0.2, 0.1, 1))
-                  .trigger(TriggerShape.BOX, size=(1.2, 1.5, 1.2), center=(0, 0.8, 0),
-                           on_enter=[act_change_velocity(14.0, VelocityDir.UP, Op.SET)]))
+    # батуты: по одному перед каждым киоском (с крыши — билет), седьмой ещё и к крыше карусели. Подбрасывают вверх,
+    # на крышу игрок доруливает в воздухе. Плита 2.2 м — бот «доходит» до узла в 1.6 м и в этот момент уже на батуте
+    pads = []
+    for i in range(8):
+        a = booth_angle(i)
+        pad = world.add(obj(f"JumpPad_{i}", pos=(PAD_R[i] * math.cos(a), 0, PAD_R[i] * math.sin(a))).trigger(
+            TriggerShape.BOX, size=(2.2, 1.5, 2.2), center=(0, 0.8, 0),
+            on_enter=[act_change_velocity(PAD_SPEED, VelocityDir.UP, Op.SET)]))
+        pad.add(obj("Plate", pos=(0, 0.1, 0), scale=(2.2, 0.2, 2.2))
+                .prop(PROP_CUBE, collision=Collision.BOX, tint=(0.9, 0.2, 0.1, 1)))
+        pads.append(pad)
+
+    # карусель на самой большой пустой площадке: стойка, крыша и 4 лошадки вращаются вместе (Simple Animator),
+    # билет внутри круга лошадок — надо проскочить между ними
+    carousel = world.add(obj("Carousel", pos=CAROUSEL).simple_animator(anim_rotate_around_axis(0.12)))
+    carousel.add(obj("Pole", pos=(0, CAROUSEL_ROOF_Y / 2, 0), scale=(0.25, CAROUSEL_ROOF_Y, 0.25), layer=LAYER_WORLD_WALL)
+                 .prop(PROP_CUBE, collision=Collision.BOX, materials=[metal_mat.guid]))
+    # крыша с коллизией Box (плоский верх ≈3.4 × 3.4 м на высоте ≈3.69): на неё запрыгивают с батута JumpPad_7
+    carousel.add(obj("Roof", pos=(0, CAROUSEL_ROOF_Y, 0), scale=(0.17, 0.25, 0.17), layer=LAYER_WORLD_WALL)
+                 .prop(roof_obj.guid, collision=Collision.BOX, materials=[paint_mat.guid]))
+    for i in range(4):
+        a = 2 * math.pi * i / 4
+        carousel.add(obj(f"Horse_{i}", pos=(2.0 * math.cos(a), 0, 2.0 * math.sin(a)), rot=(0, -math.degrees(a), 0),
+                         layer=LAYER_WORLD_WALL).prop(horse_obj.guid, collision=Collision.BOX, materials=[paint_mat.guid]))
 
     # --- декор на игровом поле
     decor = mod.add(obj("Decor"))
+    # угловые сцены у респаунов: развалившийся киоск, бочки, обломки (спавнер билета — в Ticket Spawners)
+    for i, (sx, sz) in enumerate(CORNERS):
+        corner = decor.add(obj(f"Corner_{i}"))
+        corner.add(obj("BrokenBooth", pos=(sx * 16.3, 0, sz * 13.2), rot=(0, rng2.uniform(0, 360), sx * sz * 9),
+                       layer=LAYER_WORLD_WALL).prop(booth_obj.guid, collision=Collision.BOX, materials=[rust_mat.guid]))
+        for k, (bx, bz) in enumerate(((13.6, 16.9), (14.5, 17.6), (12.7, 17.4))):
+            corner.add(obj(f"Barrel_{k}", pos=(sx * bx, 0, sz * bz), rot=(0, rng2.uniform(0, 360), 0), layer=LAYER_WORLD_WALL)
+                       .prop(barrel_obj.guid, collision=Collision.BOX, materials=[metal_mat.guid]))
+        corner.add(obj("Debris", pos=(sx * 15.2, 0.2, sz * 15.0), rot=(rng2.uniform(0, 360), rng2.uniform(0, 360), 0))
+                   .prop(debris_obj.guid, collision=Collision.NONE, tint=(0.5, 0.48, 0.45, 1)))
+    # оси через центр: вагонетка сошла с рельсов на западной площадке, ящики у южного края пруда
+    decor.add(obj("DerailedCart", pos=(-7.6, 0, -4.4), rot=(0, 75, 12), layer=LAYER_WORLD_WALL)
+              .prop(cart_obj.guid, collision=Collision.BOX, materials=[metal_mat.guid]))
+    decor.add(obj("Crates_Pond", pos=(-1.0, 0.35, -2.3), rot=(0, 4, 0), scale=(1.0, 0.7, 4.4), layer=LAYER_WORLD_WALL)
+              .prop(PROP_CUBE, collision=Collision.BOX, materials=[rust_mat.guid]))
+    for k, (bx, bz) in enumerate(((-7.4, 8.5), (-6.5, 9.3), (-5.0, 12.4))):   # кромки пруда: ряд z≈8 и колонка x≈−5
+        decor.add(obj(f"Barrel_Pond_{k}", pos=(bx, 0, bz), rot=(0, rng2.uniform(0, 360), 0), layer=LAYER_WORLD_WALL)
+                  .prop(barrel_obj.guid, collision=Collision.BOX, materials=[metal_mat.guid]))
+    for k, (bx, bz) in enumerate(((8.4, -13.4), (9.3, -14.1))):   # колонка x≈8 от забора до Booth_1
+        decor.add(obj(f"Barrel_Booth7_{k}", pos=(bx, 0, bz), rot=(0, rng2.uniform(0, 360), 0), layer=LAYER_WORLD_WALL)
+                  .prop(barrel_obj.guid, collision=Collision.BOX, materials=[metal_mat.guid]))
+    # низкие ящики поперёк коридора вдоль забора: ниже прыжка, рвут прямой пробег по периметру
+    for i, t in enumerate(BARRIER_AT):
+        d = HALF - 2.8   # ряд ящиков 5 м от забора до кольца фонарей
+        for name, pos, rot in ((f"N{i}", (t, 0.35, d), (0, 0, 0)), (f"S{i}", (-t, 0.35, -d), (0, 0, 0)),
+                               (f"E{i}", (d, 0.35, -t), (0, 90, 0)), (f"W{i}", (-d, 0.35, t), (0, 90, 0))):
+            decor.add(obj(f"Crates_{name}", pos=pos, rot=(rot[0], rot[1] + rng2.uniform(-6, 6), 0), scale=(1.0, 0.7, 5.0),
+                          layer=LAYER_WORLD_WALL).prop(PROP_CUBE, collision=Collision.BOX, materials=[rust_mat.guid]))
     for i in range(8):  # фонари между киосками, два покосились
         a = 2 * math.pi * i / 8
         tilt = (0, -math.degrees(a), 0) if i not in (2, 5) else (8, -math.degrees(a), -6)
@@ -127,24 +210,65 @@ def build(name: str) -> str:
 
     # --- спавны
     spawns = mod.add(obj("Player Spawnpoints"))
-    spawns.add(obj("Spawn_Ring", pos=(0, 1, 0)).player_spawn(SpawnShape.CIRCLE, SpawnUsage.INITIAL, radius=15, shared=False))
+    # shared=True: необщий спавн после первого игрока выбывает из списка (ModPlayerSpawn.DetermineInitialSpawnPoints),
+    # и валидатор требует 8 необщих или хотя бы один общий. Кольцо ставит N игроков через 1/N круга от +X лицом к центру
+    spawns.add(obj("Spawn_Ring", pos=(0, 1, 0)).player_spawn(SpawnShape.CIRCLE, SpawnUsage.INITIAL, radius=15, shared=True))
     for i, (x, z) in enumerate(((17, 17), (-17, 17), (17, -17), (-17, -17))):
         spawns.add(obj(f"Respawn_{i}", pos=(x, 1, z)).player_spawn(SpawnShape.POINT, SpawnUsage.RESPAWN))
 
-    # --- спавнеры билетов
+    # --- билеты: 8 на крышах киосков, 2 у карусели (внутри круга лошадок и на крыше), 4 в случайных точках
     spawners = mod.add(obj("Ticket Spawners"))
-    for i in range(12):
-        a = 2 * math.pi * i / 12
-        r = 7.0 if i % 2 else 15.0
-        spawners.add(obj(f"TicketSpawner_{i}", pos=(r * math.cos(a), 0.6, r * math.sin(a))).spawner(
-            [ticket_item.guid], interval=(1.0, None), delay=(4.0, 8.0), kind=SpawnerType.ON_DESTRUCTION,
-            location=SpawnerLocation.ON_SPAWNER, count=1))
+    specials = []   # особые узлы сетки ботов: точка каждого билета, батуты, крыши
+
+    def ticket_spawner(name, pos, **kw):
+        kw.setdefault("location", SpawnerLocation.ON_SPAWNER)
+        return spawners.add(obj(name, pos=pos).spawner([ticket_item.guid], interval=(1.0, None), delay=TICKET_DELAY,
+                                                      kind=SpawnerType.ON_DESTRUCTION, **kw))
+
+    for i in range(8):
+        a, r = booth_angle(i), 12.3   # центр крыши (козырёк смещает габарит киоска наружу)
+        roof = (r * math.cos(a), BOOTH_TOP + 0.6, r * math.sin(a))
+        ticket_spawner(f"Roof_{i}", roof)
+        specials += [{"name": f"Nav_Pad_{i}", "pos": (pads[i].pos[0], 0.5, pads[i].pos[2]), "kind": "pad"},
+                     {"name": f"Nav_Roof_{i}", "pos": (roof[0], BOOTH_TOP + 0.5, roof[2]), "kind": "roof", "pad": f"Nav_Pad_{i}"}]
+    inner = (CAROUSEL[0] + 1.0, 0.6, CAROUSEL[2])
+    ticket_spawner("Carousel_Inner", inner)
+    top = (CAROUSEL[0], CAROUSEL_ROOF_Y + 4.35 * 0.25 + 0.6, CAROUSEL[2])   # над осью: точка на вращающейся крыше не движется
+    ticket_spawner("Carousel_Roof", top)
+    specials += [{"name": "Nav_CarouselInner", "pos": (inner[0], 0.5, inner[2]), "kind": "ground"},
+                 {"name": "Nav_CarouselRoof", "pos": (top[0], top[1] - 0.1, top[2]), "kind": "roof", "pad": "Nav_Pad_7"}]
+    # случайные: один спавнер держит 4 билета, каждый раз в свободной из 12 точек (ModSpawner.Spawn)
+    points = [(sx * 15.0, sz * 15.6) for sx, sz in CORNERS]                                   # угловые сцены
+    points += [(10.5, 0.0), (0.0, 10.5), (-10.5, 0.0), (0.0, -10.5)]                          # между батутами
+    points += [(14.5 * math.cos(math.radians(33.75 + 90 * k)), 14.5 * math.sin(math.radians(33.75 + 90 * k)))
+               for k in range(4)]                                                             # за киосками
+    targets = spawners.add(obj("Random_Points"))
+    point_objs = [targets.add(obj(f"Point_{k}", pos=(x, 0.6, z))) for k, (x, z) in enumerate(points)]
+    ticket_spawner("Random", (0, 0.6, 0), location=SpawnerLocation.ON_TARGETS,
+                   spawn_points=[p.transform_guid for p in point_objs], count=4)
+    specials += [{"name": f"Nav_Point_{k}", "pos": (x, 0.5, z), "kind": "ground"} for k, (x, z) in enumerate(points)]
 
     mod.add(obj("Director").logic(trig_round_start(act_show_message("Собери билеты! / Grab the tickets!", 3.0))))
     mod.add(obj("Notes").note("Сгенерировано build_mod.py из packs/abandoned-park/minigames/tickets/DESIGN.md"))
-    return mod.write(WORKSHOP)
+    out = mod.write(workshop)
+
+    # --- превью для окна Load a saved mod: план сверху по первому проходу (сетка ботов на нём не рисуется)
+    os.makedirs(os.path.join(HERE, "plan"), exist_ok=True)
+    mod.preview_image = os.path.join(HERE, "plan", "preview.png")
+    plan_view.render_preview(out, mod.preview_image)
+
+    # --- сетка ботов: второй проход по записанной сцене (карта занятости plan_view), затем запись ещё раз
+    nodes, edges, warnings = navgen.generate(out, specials)
+    nav = mod.add(obj("AI Navigation"))
+    node_objs = [nav.add(obj(name, pos=pos).ai_node()) for name, pos in nodes]
+    link_ai_nodes(node_objs, edges)
+    for w in warnings:
+        print("сетка ботов:", w)
+    print(f"сетка ботов: {len(nodes)} узлов, {len(edges)} связей")
+    return mod.write(workshop)
 
 
 if __name__ == "__main__":
-    out = build(sys.argv[1] if len(sys.argv) > 1 else "Ticket Rush Gen")
+    sys.stdout.reconfigure(encoding="utf-8")
+    out = build(sys.argv[1] if len(sys.argv) > 1 else "Ticket Rush", sys.argv[2] if len(sys.argv) > 2 else WORKSHOP)
     print("written:", out)

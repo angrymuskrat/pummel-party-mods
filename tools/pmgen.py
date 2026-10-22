@@ -30,6 +30,7 @@ GAME_TEMPLATES = (r"C:\Program Files (x86)\Steam\steamapps\common\Pummel Party"
                   r"\PummelParty_Data\StreamingAssets\WorkshopTemplates\Minigames")
 ASSET_LOCATION_EXTERNAL = "757b15db-4305-4406-b767-1ec002daa769"  # AssetLocationGuid.External
 GUID_EMPTY = "00000000-0000-0000-0000-000000000000"
+PNG_SIGNATURE = bytes([0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A])
 
 LAYER_DEFAULT = 0
 LAYER_WORLD_GROUND = 10   # GameManager.WorldGroundLayer
@@ -200,6 +201,11 @@ def _targets(flags: int, guids: list[str] | None):
             "m_targets": [{"m_assetGUID": {"serializedGuid": g}} for g in (guids or [])]}
 
 
+# классы действий для SerializeReference в ModSettings.json (ModSystem.Logic.*Action)
+ACTION_CLASS = {Action.KILL: "KillAction", Action.CHANGE_HEALTH: "ChangeHealthAction", Action.CHANGE_SCORE: "ChangeScoreAction",
+                Action.SPAWN_EFFECT: "SpawnEffectAction", Action.PLAY_SOUND: "PlaySoundAction", Action.SHOW_MESSAGE: "ShowMessageAction"}
+
+
 def _action(type_id: int, flags: int = Targets.SOURCE, targets: list[str] | None = None, **fields) -> tuple[int, dict]:
     d = {"m_type": type_id, "m_version": 0}
     if flags is not None:
@@ -303,6 +309,38 @@ def enc_trigger_array(triggers: list[bytes]) -> bytes:
 
 
 EMPTY_TRIGGER = enc_trigger(Trigger.NONE, [])
+
+
+# ---------------------------------------------------------------- Simple Animator (анимации по образцу InbuiltMods)
+
+def _curve_key(time: float, value: float, in_slope: float, out_slope: float) -> dict:
+    return {"serializedVersion": "3", "time": time, "value": value, "inSlope": in_slope, "outSlope": out_slope,
+            "tangentMode": 0, "weightedMode": 0, "inWeight": 0.0, "outWeight": 0.0}
+
+
+def _anim_layer(speed: float, anim_type: int, axis, keys: list[dict], offset=0.0) -> dict:
+    """SimpleAnimationLayer: AnimationType 0 — позиция, 1 — поворот; m_PreInfinity/m_PostInfinity 2 = зацикливание."""
+    return {"AnimationSpeed": float(speed), "AnimationOffset": float(offset), "UseRandomAnimationOffset": False,
+            "AnimationType": anim_type, "AnimationAxis": {"x": float(axis[0]), "y": float(axis[1]), "z": float(axis[2])},
+            "AnimationCurve": {"serializedVersion": "2", "m_Curve": keys, "m_PreInfinity": 2, "m_PostInfinity": 2,
+                               "m_RotationOrder": 4}}
+
+
+def _animation(preset: int, name: str, help_text: str, layers: list[dict], **extra) -> dict:
+    d = {"AnimationPreset": preset, "AnimationLayers": [{"rid": 1000 + i} for i in range(len(layers))],
+         "m_animationName": name, "m_helpText": help_text}
+    d.update(extra)
+    d["references"] = {"version": 2, "RefIds": [
+        {"rid": 1000 + i, "type": {"class": "SimpleAnimationLayer", "ns": "", "asm": "Assembly-CSharp"}, "data": layer}
+        for i, layer in enumerate(layers)]}
+    return d
+
+
+def anim_rotate_around_axis(frequency: float, axis=(0, 1, 0)) -> dict:
+    """Пресет 3: непрерывное вращение; frequency — оборотов в секунду (линейная кривая 0→1, как в Foggy Fall)."""
+    return _animation(3, "Rotate Around Axis",
+                      "Continuously rotates an object around a given axis. \nFrequency is in number rotations around the axis per second.",
+                      [_anim_layer(frequency, 1, axis, [_curve_key(0.0, 0.0, 0.0, 1.0), _curve_key(1.0, 1.0, 1.0, 0.0)])])
 
 
 # ---------------------------------------------------------------- объекты и компоненты
@@ -422,6 +460,21 @@ class Obj:
         ])
         return self
 
+    def simple_animator(self, *animations: dict, local_position=True, local_rotation=True, time_offset=0.0) -> Obj:
+        """ModSimpleAnimator: Animations = i32 n + n × JSON анимации (пресет + слои SimpleAnimationLayer
+        через SerializeReference, формат RefIds version 2 — как в InbuiltMods/Foggy Fall). Анимации — anim_*()."""
+        w = _w(); w.i32(len(animations))
+        for a in animations:
+            w.string(_json(a))
+        self._comp("ModSimpleAnimator", [
+            ("UseLocalPosition", enc_bool(local_position)),
+            ("UseLocalRotation", enc_bool(local_rotation)),
+            ("UseLateUpdate", enc_bool(False)),
+            ("TimeOffset", enc_f32(time_offset)),
+            ("Animations", w.bytes()),
+        ])
+        return self
+
     def water(self, width=20, height=20, cell=1.0, deep=(0.0, 0.38, 0.78, 0.69), shallow=(0.11, 0.73, 0.5, 0.69),
               froth=(1, 1, 1, 1), wave_height=0.1, wave_speed=1.75) -> Obj:
         self._comp("ModWater", [
@@ -434,6 +487,11 @@ class Obj:
             ("WaveHeight", enc_f32(wave_height)),
             ("WaveSpeed", enc_f32(wave_speed)),
         ])
+        return self
+
+    def ai_node(self, is_goal=False) -> Obj:
+        """ModAINavigation: узел графа ботов. Связи ставит link_ai_nodes (ссылки на GUID компонента, как в InbuiltMods)."""
+        self._comp("ModAINavigation", [("ConnectedNodes", enc_ref_array([])), ("IsAIGoal", enc_bool(is_goal))])
         return self
 
     def box_collider(self, center=(0, 0, 0), size=(1, 1, 1)) -> Obj:
@@ -451,10 +509,11 @@ class Obj:
     def item(self, item_type=ItemType.PICKUP, visual_prefab_guid: str | None = None, on_pickup: list | None = None,
              on_drop=None, on_use=None, while_held=None, unique_pickup=False, priority=0, can_drop=True,
              disappear_when_dropped=False, auto_drop=False, drop_after=10.0, drop_on_death=True,
-             slot=0, hold_anim=0, cooldown=1.0) -> Obj:
+             slot=0, hold_anim=0, cooldown=1.0, weapon_info: dict | None = None) -> Obj:
+        """weapon_info — полный JSON ModWeaponInfo (копия DEFAULT_WEAPON_INFO с правками); WeaponType 0 = Melee."""
         self._comp("ModItem", [
             ("ItemType", enc_i32(item_type)),
-            ("WeaponInfo", enc_json(DEFAULT_WEAPON_INFO)),
+            ("WeaponInfo", enc_json(weapon_info or DEFAULT_WEAPON_INFO)),
             ("ItemPrefab", enc_ref(visual_prefab_guid)),
             ("ItemPrefabGUID", enc_guid(visual_prefab_guid or GUID_EMPTY)),
             ("ItemHoldAnimation", enc_i32(hold_anim)),
@@ -496,6 +555,19 @@ class Obj:
         go.components = [t] + list(self.components)
         go.children = [c.to_gameobject() for c in self.children]
         return go
+
+
+def link_ai_nodes(nodes: list[Obj], edges) -> None:
+    """Записывает ConnectedNodes. edges — пары (i, j) индексов в nodes; связь направленная: бот идёт из i в j
+    (ModAINavigation.GetPath обходит ConnectedNodes узла). Для двусторонней связи передать обе пары."""
+    out: dict[int, list[str]] = {i: [] for i in range(len(nodes))}
+    for i, j in edges:
+        g = nodes[j].guid_of("ModAINavigation")
+        if g not in out[i]:
+            out[i].append(g)
+    for i, n in enumerate(nodes):
+        c = next(c for c in n.components if c.type_name == "ModAINavigation")
+        c.set("ConnectedNodes", enc_ref_array(out[i]))
 
 
 def obj(name: str, pos=(0, 0, 0), rot=(0, 0, 0), scale=(1, 1, 1), layer=LAYER_DEFAULT, active=True) -> Obj:
@@ -615,6 +687,10 @@ class Mod:
     player_type: int = PlayerType.THIRD_PERSON
     min_players_alive: int = 1
     settings_overrides: dict = field(default_factory=dict)   # прямые правки в SimpleModPlayerSettings
+    # триггеры игрока в SimpleModPlayerSettings: {"onDeathTrigger": [act_*(...)], ...}; в событии смерти
+    # Source — убийца (или последний, кто нанёс урон), Receiver — умерший (SimpleModPlayer.KillPlayer)
+    player_triggers: dict = field(default_factory=dict)
+    preview_image: str | None = None   # PNG/JPG для Data/Preview.jpg (окно Load a saved mod), если редактор ещё не снял своё
     min_players: int = 2
     max_players: int = 8
 
@@ -649,8 +725,22 @@ class Mod:
         data_dir = os.path.join(root, "Data")
         os.makedirs(data_dir, exist_ok=True)
         tpl = os.path.join(GAME_TEMPLATES, self.template, "Data")
-        for fn in ("Lighting.json", "PostProcessing.data", "Preview.jpg"):
+        for fn in ("Lighting.json", "PostProcessing.data"):
             shutil.copyfile(os.path.join(tpl, fn), os.path.join(data_dir, fn))
+        # Что пользователь задал в редакторе, пересборка не трогает:
+        # - Data/Preview.jpg редактор перезаписывает снимком камеры сцены при каждом сохранении (EditorSystem.SavePreviewScreenshot);
+        #   свой файл кладём, только если там пусто, шаблонная картинка или наш прошлый файл. Наш — PNG (Texture2D.LoadImage
+        #   читает и PNG), редактор всегда пишет JPEG (EncodeToJPG), поэтому чей файл, видно по сигнатуре;
+        # - ScreenshotTextureGuid (Mod Settings → Minigame Details → Preview Image) и WorkshopItem.json (publishedFileId,
+        #   Square Preview, видимость) берём из уже существующих файлов мода.
+        preview = os.path.join(data_dir, "Preview.jpg")
+        current = open(preview, "rb").read() if os.path.exists(preview) else None
+        template_preview = open(os.path.join(tpl, "Preview.jpg"), "rb").read()
+        if current is None or current == template_preview or current[:8] == PNG_SIGNATURE:
+            with open(preview, "wb") as fh:
+                fh.write(open(self.preview_image, "rb").read() if self.preview_image else template_preview)
+        old_mdd = self._read_json(data_dir, "MinigameDefinitionData.json")
+        old_workshop = self._read_json(data_dir, "WorkshopItem.json")
 
         scene = P.Scene(1, 0, [o.to_gameobject() for o in self.roots])
         P.save(scene, os.path.join(data_dir, "MainScene.scene"))
@@ -671,12 +761,15 @@ class Mod:
             "MetaDataVersion": 1, "ModVersion": 1, "ModCreatedVersion": 1, "Name": self.name, "ModType": 3,
             "LastModified": _dt.datetime.now().astimezone().isoformat(),
             "SelectedLightingPreset": "Default", "SelectedPostProcessingPreset": "Default", "IsUnlocked": False})
-        self._write_json(data_dir, "WorkshopItem.json", {
-            "Version": 0, "title": self.name, "description": self.description, "language": "english", "metaData": "",
-            "visibility": 2, "tags": ["Minigame"], "isInternal": False, "previewFiles": [], "publishedFileId": 256,
-            "previewImageGuid": {"serializedGuid": GUID_EMPTY}})
+        if old_workshop is None:
+            self._write_json(data_dir, "WorkshopItem.json", {
+                "Version": 0, "title": self.name, "description": self.description, "language": "english", "metaData": "",
+                "visibility": 2, "tags": ["Minigame"], "isInternal": False, "previewFiles": [], "publishedFileId": 256,
+                "previewImageGuid": {"serializedGuid": GUID_EMPTY}})
         with open(os.path.join(tpl, "MinigameDefinitionData.json"), encoding="utf-8") as fh:
             mdd = json.load(fh)
+        if old_mdd and old_mdd.get("ScreenshotTextureGuid"):
+            mdd["ScreenshotTextureGuid"] = old_mdd["ScreenshotTextureGuid"]
         mdd.update(MinigameName=self.name, Description=self.description, MinPlayers=self.min_players, MaxPlayers=self.max_players)
         self._write_json(data_dir, "MinigameDefinitionData.json", mdd)
         with open(os.path.join(tpl, "ModSettings.json"), encoding="utf-8") as fh:
@@ -686,8 +779,26 @@ class Mod:
             PlacementCondition=self.placement, EndConditions=self.end_conditions, ChosenPlayerType=self.player_type,
             MinPlayersAlive=self.min_players_alive)
         ms["SimpleModPlayerSettings"].update(self.settings_overrides)
+        refs = []
+        for trig_name, actions in self.player_triggers.items():
+            trig = ms["SimpleModPlayerSettings"][trig_name]
+            trig["m_actions"] = []
+            for type_id, data in actions:
+                rid = 1000 + len(refs)
+                trig["m_actions"].append({"rid": rid})
+                refs.append({"rid": rid, "type": {"class": ACTION_CLASS[type_id], "ns": "ModSystem.Logic", "asm": "Assembly-CSharp"},
+                             "data": data})
+        ms["references"] = {"version": 2, "RefIds": refs}   # SerializeReference, как в InbuiltMods/Aftershock Arena
         self._write_json(data_dir, "ModSettings.json", ms)
         return root
+
+    @staticmethod
+    def _read_json(folder: str, name: str) -> dict | None:
+        path = os.path.join(folder, name)
+        if not os.path.exists(path):
+            return None
+        with open(path, encoding="utf-8-sig") as fh:
+            return json.load(fh)
 
     @staticmethod
     def _write_json(folder: str, name: str, data: dict):
