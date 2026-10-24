@@ -127,6 +127,21 @@ class Mesh:
                     self.add_poly([a, b, c, d], uv_scale)
         self._check_outward(center, start_face)
 
+    def add_prism(self, base, y0, y1, uv_scale=1.0):
+        """Выпуклая призма: base — точки (x, z) выпуклого многоугольника в любом порядке обхода, от y0 до y1."""
+        start_face = len(self.f)
+        center = (sum(x for x, _ in base) / len(base), (y0 + y1) / 2, sum(z for _, z in base) / len(base))
+        lo = [(x, y0, z) for x, z in base]
+        hi = [(x, y1, z) for x, z in base]
+        faces = [lo, hi] + [[lo[i], lo[(i + 1) % len(base)], hi[(i + 1) % len(base)], hi[i]] for i in range(len(base))]
+        for pts in faces:
+            n = _normal(pts[0], pts[1], pts[2])
+            fc = [sum(p[k] for p in pts) / len(pts) for k in range(3)]
+            if sum(n[k] * (fc[k] - center[k]) for k in range(3)) < 0:
+                pts = list(reversed(pts))
+            self.add_poly(pts, uv_scale)
+        self._check_outward(center, start_face)
+
     def _add_cap(self, ring, reverse, uv_scale):
         pts = list(reversed(ring)) if reverse else ring
         n = _normal(pts[0], pts[1], pts[2])
@@ -230,10 +245,36 @@ def booth():
     return m
 
 
+FERRIS_RADIUS, FERRIS_GAP = 6.0, 0.9
+
+
 def ferris_wheel():
-    """Колесо обозрения радиусом 6: два обода из сегментов, спицы, ступица, 8 кабинок, А-образные опоры."""
+    """Колесо обозрения радиусом 6 одним куском: ротор + опоры. Mover крутит его целиком вместе с опорами —
+    для вращения брать ferris_wheel_rotor + ferris_wheel_stand (pivot у обоих в ступице)."""
     m = Mesh()
-    radius, segments, gap = 6.0, 24, 0.9
+    _ferris_rotor(m)
+    _ferris_stand(m)
+    return m
+
+
+def ferris_wheel_rotor():
+    """Вращающаяся часть колеса: два обода, спицы, ступица, 8 кабинок. Pivot — центр ступицы."""
+    m = Mesh()
+    _ferris_rotor(m)
+    return m
+
+
+def ferris_wheel_stand():
+    """Неподвижная часть колеса: А-образные опоры, основание и ось сквозь ступицу. Pivot — центр ступицы."""
+    m = Mesh()
+    _ferris_stand(m)
+    m.group = "axle"
+    m.add_cylinder((0, 0, 0), 0.18, FERRIS_GAP + 1.2, segments=8, axis="z")
+    return m
+
+
+def _ferris_rotor(m):
+    radius, segments, gap = FERRIS_RADIUS, 24, FERRIS_GAP
     m.group = "rims"
     for z in (-gap / 2, gap / 2):
         for i in range(segments):
@@ -257,14 +298,18 @@ def ferris_wheel():
         gx, gy = radius * math.cos(a), radius * math.sin(a)
         m.add_box((gx, gy - 0.6, 0), (0.9, 0.9, 1.1))
         m.add_box((gx, gy - 0.1, 0), (0.08, 0.5, 0.08))
+
+
+def _ferris_stand(m):
+    radius, gap = FERRIS_RADIUS, FERRIS_GAP
     m.group = "legs"
     for z in (-gap / 2 - 0.3, gap / 2 + 0.3):
         for sign in (-1, 1):
+            # A-образно: верх у ступицы, низ разведён на ±3.2 м
             m.add_box((sign * 1.6, -radius / 2 - 0.5, z), (0.25, radius + 1.2, 0.25),
-                      rot=(0, 0, sign * -28))
+                      rot=(0, 0, sign * 28))
     m.group = "base"
     m.add_box((0, -radius - 1.1, 0), (6.0, 0.3, gap + 1.4))
-    return m
 
 
 def horse(headless=False):
@@ -302,6 +347,34 @@ def carousel_roof():
     m.group = "spire"
     m.add_cylinder((0, 3.4, 0), 0.12, 1.2, segments=6)
     m.add_sphere((0, 4.1, 0), 0.25, segments=8, rings=4)
+    return m
+
+
+DECK_INNER_R, DECK_OUTER_R = 7.0, 10.0   # внутренний диск карусели и внешнее кольцо из 8 осыпающихся секторов
+
+
+def carousel_deck():
+    """Пол карусели: диск радиусом 7 (дальше — сектора carousel_sector), толщиной 0.5, верх на y = 0; ступица в центре."""
+    m = Mesh()
+    m.group = "deck"
+    m.add_cylinder((0, -0.25, 0), DECK_INNER_R, 0.5, segments=32, uv_scale=0.25)
+    m.group = "hub"
+    m.add_cylinder((0, 0.08, 0), 1.2, 0.16, segments=12, uv_scale=0.5)   # ниже stepOffset 0.2: заходится без прыжка
+    return m
+
+
+def carousel_sector():
+    """Сектор внешнего кольца карусели: r 7…10, 45° вокруг +X, толщина 0.5, верх на y = 0. Pivot — ось карусели,
+    так что восемь копий, повёрнутых на 45°, замыкают кольцо. Кольцо не выпуклое — собрано из 4 выпуклых призм."""
+    m = Mesh()
+    m.group = "sector"
+    steps = 4
+    for i in range(steps):
+        a0 = math.radians(-22.5 + 45 * i / steps)
+        a1 = math.radians(-22.5 + 45 * (i + 1) / steps)
+        base = [(r * math.cos(a), r * math.sin(a)) for r, a in
+                ((DECK_INNER_R, a0), (DECK_OUTER_R, a0), (DECK_OUTER_R, a1), (DECK_INNER_R, a1))]
+        m.add_prism(base, -0.5, 0.0, uv_scale=0.25)
     return m
 
 
@@ -448,9 +521,13 @@ MODELS = {
     "ticket": ticket,
     "booth": booth,
     "ferris_wheel": ferris_wheel,
+    "ferris_wheel_rotor": ferris_wheel_rotor,
+    "ferris_wheel_stand": ferris_wheel_stand,
     "horse": horse,
     "horse_headless": horse_headless,
     "carousel_roof": carousel_roof,
+    "carousel_deck": carousel_deck,
+    "carousel_sector": carousel_sector,
     "debris": debris,
     "cart": cart,
     "rail_segment": rail_segment,

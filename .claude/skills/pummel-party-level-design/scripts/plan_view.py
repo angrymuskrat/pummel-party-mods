@@ -14,7 +14,7 @@
 Аргумент — имя мода в WorkshopMods, имя встроенного мода (InbuiltMods), папка мода или путь к MainScene.scene.
 
 Допущения (не из вики, проверять в редакторе): LowPolyCube — куб 1×1×1 с центром в pivot, LowPolyPlane — 10×10
-по XZ, LowPolySphere — диаметр 1; Water растёт от pivot в +X/+Z (Width×Height клеток по CellSize).
+по XZ, LowPolySphere — диаметр 1; Water центрирована на pivot (Width×Height клеток по CellSize; LowPolyWater, проверено плейтестом 2026-10-22).
 Размеры остальных встроенных props неизвестны (каталог Addressables бинарный) — они рисуются маркером «?».
 """
 from __future__ import annotations
@@ -347,8 +347,12 @@ def spawn_points(th: Thing, data):
 
 
 def water_poly(th: Thing, data):
-    w, h = data["w"] * data["cell"], data["h"] * data["cell"]
-    return [(p[0], p[2]) for p in (apply(th.m, q) for q in ((0, 0, 0), (w, 0, 0), (w, 0, h), (0, 0, h)))]
+    w, h = data["w"] * data["cell"] / 2, data["h"] * data["cell"] / 2   # сетка центрирована на pivot (LowPolyWater)
+    return [(p[0], p[2]) for p in (apply(th.m, q) for q in ((-w, 0, -h), (w, 0, -h), (w, 0, h), (-w, 0, h)))]
+
+
+def water_level(th: Thing):
+    return apply(th.m, (0, 0, 0))[1]
 
 
 # ---------------------------------------------------------------- геометрия 2D
@@ -665,7 +669,8 @@ def analyse(things, mg, ps, cell):
             grid.fill([(p[0], p[2]) for p in tri], 1, only_on=(0,))
     for t in things:
         for kind, data in t.markers:
-            if kind == "water":
+            # вода глубоко под полом (пруд под приподнятой платформой) по полу не течёт — тот же порог, что у kill-триггеров
+            if kind == "water" and water_level(t) >= floor_y - 1.0:
                 grid.fill(water_poly(t, data), 4, only_on=(1,))
     for t in things:
         for kind, data in t.markers:
@@ -918,8 +923,18 @@ def draw_plan(things, an, view: View, path, labels=True, cell=4.0, clean=False):
             cv.line(view(x0w, gz), view(x1w, gz), COLORS["grid10" if gz % 10 == 0 else "grid"])
     solid = [t for t in things if t.aabb]
     ymin, ymax = an["floor_y"], max([t.aabb[1][1] for t in solid] + [an["floor_y"] + 1])
-    order = sorted(solid, key=lambda t: t.aabb[1][1])
-    for t in order:
+    # вода у пола (не глубже 1 м, как в метриках) — поверх всего; глубже — в порядке высот, чтобы платформа над прудом
+    # закрывала воду, а не наоборот
+    def water_z(t): return math.inf if water_level(t) >= an["floor_y"] - 1.0 else water_level(t)
+    layers = [(t.aabb[1][1], 0, t, None) for t in solid]
+    layers += [(water_z(t), 1, t, data) for t in things for kind, data in t.markers if kind == "water"]
+    for _, is_water, t, data in sorted(layers, key=lambda l: (l[0], l[1])):
+        if is_water:
+            poly = [view(*p) for p in water_poly(t, data)]
+            for y, a, b in poly_spans(poly, view.h):
+                cv.blend_span(y, a, b, COLORS["water"], 0.6)
+            cv.poly_outline(poly, COLORS["water"], 2)
+            continue
         col = plan_color(t, ymin, ymax)
         if clean and getattr(t, "tint", None):   # в превью — настоящий цвет окрашенных props (батуты)
             col = t.tint
@@ -930,13 +945,6 @@ def draw_plan(things, an, view: View, path, labels=True, cell=4.0, clean=False):
             h2 = hull([view(p[0], p[2]) for tri in t.tris3 for p in tri])
             if len(h2) >= 2:
                 cv.poly_outline(h2, shade(col, 0.6))
-    for t in things:
-        for kind, data in t.markers:
-            if kind == "water":
-                poly = [view(*p) for p in water_poly(t, data)]
-                for y, a, b in poly_spans(poly, view.h):
-                    cv.blend_span(y, a, b, COLORS["water"], 0.6)
-                cv.poly_outline(poly, COLORS["water"], 2)
     # сетка ботов: тонкие голубые линии, точка у конца ребра показывает направление
     for a, b in ([] if clean else nav_edges(things)):
         pa, pb = view(a[0], a[2]), view(b[0], b[2])

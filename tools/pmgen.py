@@ -108,6 +108,18 @@ class MoverAxis:      # ModMover.ModMoverRotationAxis (ось в мировых 
     X, Y, Z, CUSTOM = range(4)
 
 
+class Tween:          # ModTweenType (PlayTweenAnimationAction)
+    WORLD_POSITION, LOCAL_ROTATION, LOCAL_SCALE, LOCAL_POSITION, ROTATE_LOCAL_AXIS, ROTATE_WORLD_AXIS, WORLD_ROTATION = range(7)
+
+
+class TweenValue:     # ModTweenValue: Offset — прибавка к текущему значению
+    CURRENT, SPECIFIC, OFFSET = range(3)
+
+
+class Ease:           # LeanTweenType (начало списка; 0 — notUsed)
+    LINEAR, EASE_OUT_QUAD, EASE_IN_QUAD, EASE_IN_OUT_QUAD, EASE_IN_CUBIC, EASE_OUT_CUBIC = range(1, 7)
+
+
 class Trigger:        # ModTriggerType
     NONE, START, ENABLE, UPDATE, HIT, WEAPON_HIT, TIMER, BOARD_SPACE, ROUND_START, ROUND_END = (
         0, 32, 40, 48, 64, 80, 96, 112, 128, 144)
@@ -203,7 +215,8 @@ def _targets(flags: int, guids: list[str] | None):
 
 # классы действий для SerializeReference в ModSettings.json (ModSystem.Logic.*Action)
 ACTION_CLASS = {Action.KILL: "KillAction", Action.CHANGE_HEALTH: "ChangeHealthAction", Action.CHANGE_SCORE: "ChangeScoreAction",
-                Action.SPAWN_EFFECT: "SpawnEffectAction", Action.PLAY_SOUND: "PlaySoundAction", Action.SHOW_MESSAGE: "ShowMessageAction"}
+                Action.SPAWN_EFFECT: "SpawnEffectAction", Action.PLAY_SOUND: "PlaySoundAction", Action.SHOW_MESSAGE: "ShowMessageAction",
+                Action.CHANGE_VELOCITY: "ChangeVelocityAction"}
 
 
 def _action(type_id: int, flags: int = Targets.SOURCE, targets: list[str] | None = None, **fields) -> tuple[int, dict]:
@@ -266,9 +279,25 @@ def act_play_sound(clip_guid: str | None, volume=1.0, flags=Targets.RECEIVER, ta
                    m_clip={"m_assetGUID": {"serializedGuid": clip_guid or GUID_EMPTY}}, m_volume=float(volume))
 
 
-def act_match_transform(transform_guid: str, targets: list[str], values=63):
-    """values — флаги TransformValues: PositionX=1,Y=2,Z=4, RotationX=8,Y=16,Z=32 (63 = всё)."""
-    return _action(Action.MATCH_TRANSFORM, Targets.ADVANCED, targets,
+def act_set_color(color, flags=Targets.ADVANCED, targets: list[str] | None = None):
+    """Цель — трансформ или Prop: меняет tint у Prop на объекте; Logic — у всех дочерних props (SetColorAction). Не проверено."""
+    return _action(Action.SET_COLOR, flags, targets, m_color={"r": color[0], "g": color[1], "b": color[2], "a": color[3]})
+
+
+def act_play_tween(targets: list[str], kind=Tween.LOCAL_POSITION, end=(0, 0, 0), end_type=TweenValue.OFFSET, seconds=1.0,
+                   ease=Ease.LINEAR, start=(0, 0, 0), start_type=TweenValue.CURRENT, axis=(0, 1, 0), degrees=0.0,
+                   flags=Targets.ADVANCED):
+    """Одноразовый твин (LeanTween). axis/degrees — только для ROTATE_*_AXIS. Не проверено."""
+    def v(p): return {"x": p[0], "y": p[1], "z": p[2]}
+    return _action(Action.PLAY_TWEEN, flags, targets, m_tweenType=kind, m_easeType=ease, m_time=float(seconds),
+                   m_startValueType=start_type, m_startValue=v(start), m_endValueType=end_type, m_endValue=v(end),
+                   m_rotationAxis=v(axis), m_rotationDegrees=float(degrees))
+
+
+def act_match_transform(transform_guid: str, targets: list[str] | None = None, values=63, flags=Targets.ADVANCED):
+    """values — флаги TransformValues: PositionX=1,Y=2,Z=4, RotationX=8,Y=16,Z=32 (63 = всё).
+    Цель-игрок (flags=Targets.SOURCE) переносится через SimpleModPlayer.TeleportPlayer с поворотом камеры по Y."""
+    return _action(Action.MATCH_TRANSFORM, flags, targets,
                    m_transformToMatch={"m_assetGUID": {"serializedGuid": transform_guid}},
                    m_transformValuesToMatch=values)
 
@@ -334,6 +363,16 @@ def _animation(preset: int, name: str, help_text: str, layers: list[dict], **ext
         {"rid": 1000 + i, "type": {"class": "SimpleAnimationLayer", "ns": "", "asm": "Assembly-CSharp"}, "data": layer}
         for i, layer in enumerate(layers)]}
     return d
+
+
+def anim_move_along_line(frequency: float, offset=(0, 1, 0)) -> dict:
+    """Пресет 1: туда-обратно по отрезку от стартовой точки до start + offset; frequency — циклов в секунду
+    (кривая 0→1→0 с плоскими касательными, как у блоков Foggy Fall)."""
+    return _animation(1, "Move Along Line",
+                      "Moves an object back and forth smoothly along a line. \nThe line is defined by a direction vector from "
+                      "the object's starting point. \nThe distance describes how far the object moves along the line before returning.",
+                      [_anim_layer(frequency, 0, offset, [_curve_key(0.0, 0.0, 0.0, 0.0), _curve_key(0.5, 1.0, 0.0, 0.0),
+                                                          _curve_key(1.0, 0.0, 0.0, 0.0)])])
 
 
 def anim_rotate_around_axis(frequency: float, axis=(0, 1, 0)) -> dict:
@@ -691,6 +730,7 @@ class Mod:
     # Source — убийца (или последний, кто нанёс урон), Receiver — умерший (SimpleModPlayer.KillPlayer)
     player_triggers: dict = field(default_factory=dict)
     preview_image: str | None = None   # PNG/JPG для Data/Preview.jpg (окно Load a saved mod), если редактор ещё не снял своё
+    music_guid: str | None = None      # аудио-ассет мода вместо музыки шаблона (SimpleMinigameSettings.MusicGUID); не проверено
     min_players: int = 2
     max_players: int = 8
 
@@ -778,6 +818,8 @@ class Mod:
             NumberOfRounds=self.rounds, RoundDuration=float(self.round_duration), PointsToWin=self.points_to_win,
             PlacementCondition=self.placement, EndConditions=self.end_conditions, ChosenPlayerType=self.player_type,
             MinPlayersAlive=self.min_players_alive)
+        if self.music_guid:
+            ms["SimpleMinigameSettings"]["MusicGUID"] = {"serializedGuid": self.music_guid}
         ms["SimpleModPlayerSettings"].update(self.settings_overrides)
         refs = []
         for trig_name, actions in self.player_triggers.items():

@@ -143,12 +143,29 @@ def carousel_music():
     return track[: int(RATE * 8.0)]
 
 
+def creak():
+    """Скрип ржавого металла 1.2 с: пилообразный тон скользит 210→90 Гц с дрожанием и треском шума, в конце удар."""
+    import random
+    rng = random.Random("creak")
+    n = int(RATE * 1.2)
+    out, phase = [], 0.0
+    for i in range(n):
+        t = i / RATE
+        f = 210 - 120 * (t / 1.2) + 12 * math.sin(2 * math.pi * 23 * t)
+        phase += f / RATE
+        saw = 2 * (phase % 1.0) - 1
+        env = min(1.0, t / 0.05) * (0.6 + 0.4 * math.sin(2 * math.pi * 7 * t) ** 2)
+        out.append(0.5 * env * saw + 0.15 * env * (rng.random() * 2 - 1))
+    return place(out, noise_burst(0.3, 0.01, 2000, 200, rng, amp=0.9), 0.9)
+
+
 SOUNDS = {
     "ticket_pickup": ticket_pickup,
     "sweep": sweep,
     "finish": finish,
     "cart_rumble": cart_rumble,
     "carousel_music": carousel_music,
+    "creak": creak,
 }
 
 

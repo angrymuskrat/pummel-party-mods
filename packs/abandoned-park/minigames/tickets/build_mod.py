@@ -20,6 +20,7 @@ import plan_view  # noqa: E402
 ASSETS = os.path.join(ROOT, "packs", "abandoned-park", "assets")
 WORKSHOP = r"%USERPROFILE%\AppData\LocalLow\Rebuilt Games\Pummel Party\WorkshopMods"
 HALF = 20.0  # игровой пол 40×40
+POND_RECT = (-4.0, 4.0, 0.0, 8.0)   # x0, x1, z0, z1 пруда — дыра в полу; под него расставлены бочки и ящики у кромки
 CORNERS = ((1, 1), (-1, 1), (1, -1), (-1, -1))  # знаки x/z угловых сцен, совпадают с Respawn_0..3
 CAROUSEL = (4.0, 0.0, -5.0)                     # центр самой большой пустой площадки по plan_view
 BARRIER_AT = (-7.0, 6.0)                        # где ящики режут коридор вдоль каждой стороны забора
@@ -54,14 +55,16 @@ def build(name: str, workshop: str = WORKSHOP) -> str:
     # --- ассеты
     def prop(fn): return mod.add_file_asset("prop", os.path.join(ASSETS, "models", fn))
     def tex(fn): return mod.add_file_asset("texture", os.path.join(ASSETS, "textures", fn))
-    ticket_obj, booth_obj, wheel_obj = prop("ticket.obj"), prop("booth.obj"), prop("ferris_wheel.obj")
+    ticket_obj, booth_obj = prop("ticket.obj"), prop("booth.obj")
+    # колесо из двух моделей: крутится только ротор, опоры стоят (pivot у обеих в ступице)
+    rotor_obj, stand_obj = prop("ferris_wheel_rotor.obj"), prop("ferris_wheel_stand.obj")
     lamp_obj, fence_obj, barrel_obj = prop("lamppost.obj"), prop("fence_segment.obj"), prop("barrel.obj")
     tree_obj, hill_obj, trestle_obj = prop("dead_tree.obj"), prop("hill.obj"), prop("coaster_trestle.obj")
     rail_obj, debris_obj = prop("rail_segment.obj"), prop("debris.obj")
     horse_obj, roof_obj, cart_obj = prop("horse.obj"), prop("carousel_roof.obj"), prop("cart.obj")
     pickup_wav = mod.add_file_asset("audio", os.path.join(ASSETS, "audio", "ticket_pickup.wav"))
     rust_mat = mod.add_material("RustBooth", tex("rust_booth.png"), tiling=(2.0, 2.0))
-    concrete_mat = mod.add_material("Concrete", tex("concrete.png"), tiling=(8.0, 8.0))
+    concrete_tex = tex("concrete.png")
     metal_mat = mod.add_material("RustMetal", tex("rust_metal.png"), tiling=(1.0, 1.0))
     dirt_mat = mod.add_material("Dirt", tex("dirt.png"), tiling=(20.0, 20.0))
     paint_mat = mod.add_material("CarouselPaint", tex("carousel_paint.png"), tiling=(1.0, 1.0))
@@ -84,8 +87,15 @@ def build(name: str, workshop: str = WORKSHOP) -> str:
 
     # --- игровой пол и киоски
     world = mod.add(obj("World"))
-    world.add(obj("Ground", scale=(4, 1, 4), layer=LAYER_WORLD_GROUND)
-              .prop(PROP_PLANE, collision=Collision.MESH, materials=[concrete_mat.guid]))
+    # пол 40 × 40 из четырёх плит вокруг дыры под пруд: сплошной пол закрывал воду и не пускал к зоне смерти.
+    # У каждой плиты своя плитка текстуры, чтобы бетон шёл с тем же шагом 5 м, что у прежнего цельного пола
+    x0, x1, z0, z1 = POND_RECT
+    for name, (ax, bx, az, bz) in (("W", (-HALF, x0, -HALF, HALF)), ("E", (x1, HALF, -HALF, HALF)),
+                                   ("S", (x0, x1, -HALF, z0)), ("N", (x0, x1, z1, HALF))):
+        w, d = bx - ax, bz - az
+        mat = mod.add_material(f"Concrete_{name}", concrete_tex, tiling=(w / 5, d / 5))
+        world.add(obj(f"Ground_{name}", pos=((ax + bx) / 2, 0, (az + bz) / 2), scale=(w / 10, 1, d / 10), layer=LAYER_WORLD_GROUND)
+                  .prop(PROP_PLANE, collision=Collision.MESH, materials=[mat.guid]))
     for i in range(8):
         a = 2 * math.pi * i / 8 + math.pi / 16
         world.add(obj(f"Booth_{i}", pos=(12 * math.cos(a), 0, 12 * math.sin(a)), rot=(0, -math.degrees(a) + 90, 0),
@@ -93,16 +103,24 @@ def build(name: str, workshop: str = WORKSHOP) -> str:
 
     # колесо обозрения: за южным забором на земле задника, крутится вокруг мировой оси Z. На полу (z −17) оно стояло в 2 м
     # за спиной игрока, которого кольцевой спавн ставит в (0, −15) лицом к центру, и камера оказывалась внутри колеса
-    world.add(obj("FerrisWheel", pos=(0, 7.1, -28))
-              .prop(wheel_obj.guid, collision=Collision.NONE, materials=[metal_mat.guid])
+    wheel = world.add(obj("FerrisWheel", pos=(0, 7.1, -28))
+                      .prop(stand_obj.guid, collision=Collision.NONE, materials=[metal_mat.guid]))
+    wheel.add(obj("Rotor").prop(rotor_obj.guid, collision=Collision.NONE, materials=[metal_mat.guid])
               .mover(MoverDir.CUSTOM, (0, 0, 0), 0.0, MoverAxis.Z, (0, 0, 1), 10.0))
 
-    # пруд и зона смерти
-    pond = world.add(obj("Pond", pos=(-4, -0.3, 0)).water(width=8, height=8, cell=1.0,
-                                                           deep=(0.12, 0.45, 0.08, 0.8), shallow=(0.45, 1.0, 0.2, 0.8), froth=(0.8, 1.0, 0.6, 1)))
-    pond.add(obj("KillVolume", pos=(4, -0.6, 4)).trigger(
-        TriggerShape.BOX, size=(8, 1, 8),
+    # пруд в дыре пола: вода центрирована на позиции объекта (LowPolyWater), зона смерти — сразу под её поверхностью.
+    # Бортик без коллизии — видимая кромка, в пруд с него падают
+    pond_c = ((x0 + x1) / 2, (z0 + z1) / 2)
+    pond = world.add(obj("Pond", pos=(pond_c[0], -0.3, pond_c[1])).water(
+        width=int(x1 - x0), height=int(z1 - z0), cell=1.0,
+        deep=(0.12, 0.45, 0.08, 0.8), shallow=(0.45, 1.0, 0.2, 0.8), froth=(0.8, 1.0, 0.6, 1)))
+    pond.add(obj("KillVolume", pos=(0, -0.6, 0)).trigger(
+        TriggerShape.BOX, size=(x1 - x0, 1, z1 - z0),
         on_enter=[act_spawn_effect(Effect.EXPLOSION, Targets.SOURCE), act_kill(Targets.SOURCE)]))
+    for name, pos, size in (("S", (pond_c[0], z0 - 0.15), (x1 - x0 + 0.6, 0.3)), ("N", (pond_c[0], z1 + 0.15), (x1 - x0 + 0.6, 0.3)),
+                            ("W", (x0 - 0.15, pond_c[1]), (0.3, z1 - z0)), ("E", (x1 + 0.15, pond_c[1]), (0.3, z1 - z0))):
+        world.add(obj(f"PondCurb_{name}", pos=(pos[0], 0.06, pos[1]), scale=(size[0], 0.12, size[1]))
+                  .prop(PROP_CUBE, collision=Collision.NONE, tint=(0.35, 0.36, 0.33, 1)))
 
     # батуты: по одному перед каждым киоском (с крыши — билет), седьмой ещё и к крыше карусели. Подбрасывают вверх,
     # на крышу игрок доруливает в воздухе. Плита 2.2 м — бот «доходит» до узла в 1.6 м и в этот момент уже на батуте
@@ -185,7 +203,7 @@ def build(name: str, workshop: str = WORKSHOP) -> str:
 
     # --- задний план: земля без коллизии, холмы, деревья, руины горок, зона смерти под всем
     backdrop = mod.add(obj("Backdrop"))
-    backdrop.add(obj("OuterGround", pos=(0, -0.15, 0), scale=(18, 1, 18))
+    backdrop.add(obj("OuterGround", pos=(0, -0.6, 0), scale=(18, 1, 18))   # ниже воды (−0.3): иначе закрыла бы пруд в дыре пола
                  .prop(PROP_PLANE, collision=Collision.NONE, materials=[dirt_mat.guid]))
     backdrop.add(obj("FallVolume", pos=(0, -8, 0)).trigger(TriggerShape.BOX, size=(400, 4, 400),
                                                            on_enter=[act_kill(Targets.SOURCE)]))
