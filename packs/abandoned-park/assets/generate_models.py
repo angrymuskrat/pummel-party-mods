@@ -517,7 +517,73 @@ def coaster_trestle():
     return m
 
 
+def throne():
+    """Трон маскота ~3 м: сиденье, высокая спинка с веером «лучей», подлокотники-шары, ножки. Pivot — пол под
+    центром сиденья, сидят лицом к +Z; габарит 1.8 × 1.4 м."""
+    m = Mesh()
+    m.group = "seat"
+    m.add_box((0, 0.55, 0.05), (1.5, 0.3, 1.2))
+    m.group = "legs"
+    for sx in (-0.6, 0.6):
+        for sz in (-0.45, 0.5):
+            m.add_box((sx, 0.2, sz), (0.2, 0.4, 0.2))
+    m.group = "back"
+    m.add_box((0, 1.6, -0.5), (1.6, 2.1, 0.25))
+    for k in range(5):   # веер над спинкой, как у циркового трона
+        a = math.radians(-50 + 25 * k)
+        m.add_box((1.0 * math.sin(a), 2.65 + 0.55 * math.cos(a), -0.5), (0.22, 1.1, 0.18), rot=(0, 0, -math.degrees(a)))
+        m.add_sphere((1.55 * math.sin(a), 2.65 + 1.1 * math.cos(a), -0.5), 0.17, segments=8, rings=4)
+    m.group = "arms"
+    for sx in (-0.85, 0.85):
+        m.add_box((sx, 0.95, 0.05), (0.2, 0.5, 1.2))
+        m.add_sphere((sx, 1.25, 0.6), 0.2, segments=8, rings=4)
+    return m
+
+
+def throne_dais():
+    """Помост трона: диск r 3, высота 0.15 (ниже ступеньки 0.2 — заходят и боты), pivot — пол в центре."""
+    m = Mesh()
+    m.group = "dais"
+    m.add_cylinder((0, 0.075, 0), 3.0, 0.15, segments=24, uv_scale=0.5)
+    return m
+
+
+def crown():
+    """Корона ~1.4 м в поперечнике: обруч из 12 пластин, 6 зубцов с шарами. Pivot — низ обруча в центре."""
+    m = Mesh()
+    r, n = 0.7, 12
+    m.group = "band"
+    for i in range(n):
+        a = 2 * math.pi * (i + 0.5) / n
+        m.add_box((r * math.cos(a), 0.2, r * math.sin(a)), (0.08, 0.4, 2 * r * math.sin(math.pi / n) + 0.02),
+                  rot=(0, -math.degrees(a), 0))
+    m.group = "spikes"
+    for i in range(6):
+        a = 2 * math.pi * i / 6
+        x, z = r * math.cos(a), r * math.sin(a)
+        m.add_cone((x, 0.4, z), 0.14, 0.45, segments=6)
+        m.add_sphere((x, 0.92, z), 0.1, segments=8, rings=4)
+    return m
+
+
+def crown_zone():
+    """Кольцо зоны короны на полу: r 2.25…2.5, толщина 4 см, 32 пластины. Pivot — центр на полу."""
+    m = Mesh()
+    m.group = "ring"
+    r0, r1, n = 2.25, 2.5, 32
+    for i in range(n):
+        a = 2 * math.pi * (i + 0.5) / n
+        rm = (r0 + r1) / 2
+        m.add_box((rm * math.cos(a), 0.02, rm * math.sin(a)), (r1 - r0, 0.04, 2 * r1 * math.sin(math.pi / n) + 0.02),
+                  rot=(0, -math.degrees(a), 0))
+    return m
+
+
 MODELS = {
+    "throne": throne,
+    "throne_dais": throne_dais,
+    "crown": crown,
+    "crown_zone": crown_zone,
     "ticket": ticket,
     "booth": booth,
     "ferris_wheel": ferris_wheel,

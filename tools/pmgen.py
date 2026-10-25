@@ -216,7 +216,8 @@ def _targets(flags: int, guids: list[str] | None):
 # классы действий для SerializeReference в ModSettings.json (ModSystem.Logic.*Action)
 ACTION_CLASS = {Action.KILL: "KillAction", Action.CHANGE_HEALTH: "ChangeHealthAction", Action.CHANGE_SCORE: "ChangeScoreAction",
                 Action.SPAWN_EFFECT: "SpawnEffectAction", Action.PLAY_SOUND: "PlaySoundAction", Action.SHOW_MESSAGE: "ShowMessageAction",
-                Action.CHANGE_VELOCITY: "ChangeVelocityAction"}
+                Action.CHANGE_VELOCITY: "ChangeVelocityAction", Action.MODIFY_PLAYER: "ModifyPlayerAction",
+                Action.WAIT: "WaitAction"}
 
 
 def _action(type_id: int, flags: int = Targets.SOURCE, targets: list[str] | None = None, **fields) -> tuple[int, dict]:
@@ -261,6 +262,13 @@ def act_stun(duration=1.0, flags=Targets.SOURCE, targets=None):
 
 def act_set_gravity(vec=(0, -9.81, 0)):
     return _action(Action.SET_GRAVITY, None, None, m_value={"x": vec[0], "y": vec[1], "z": vec[2]})
+
+
+def act_modify_player_speed(multiplier: float, flags=Targets.SOURCE, targets=None):
+    """Modify Player Action, режим MovementSpeedMultiplier (0…100): maxSpeed, разгон и торможение игрока × multiplier
+    (SimpleModPlayer.SetMovementSpeedMultiplier); при респауне игра сама возвращает 1. Не проверено."""
+    return _action(Action.MODIFY_PLAYER, flags, targets, m_playerActionType=0, m_movementSpeed=float(multiplier),
+                   m_gravity={"x": 0.0, "y": -9.81, "z": 0.0})
 
 
 def act_set_placement(flags=Targets.SOURCE, targets=None):
