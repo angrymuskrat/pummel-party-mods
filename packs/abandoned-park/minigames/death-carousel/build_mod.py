@@ -33,6 +33,13 @@ SWEEP_A_RAMP = (-30.0, -38.0, -46.0, -54.0, -62.0, -70.0)
 SWEEP_C_RAMP = (50.0, 60.0, 70.0, 80.0, 90.0)
 SWEEP_PUSH, SWEEP_LIFT = 8.0, 5.0   # м/с от метлы: толкает чуть сильнее удара (7 и 4.5), но добавляет, а не задаёт скорость
 SWEEP_FROM = 0.55     # брусья начинаются у колонны (половина её ширины 0.5), чтобы у оси не было безопасного кольца
+# у колонны толчок сильнее (разбор 2026-10-25): при одинаковой скорости 8 м/с метла уносила на 3.2 м, и от колонны
+# до края диска r 7 было не долететь — центр был безопасен. 12 м/с за те же 0.4 с полёта — 4.8 м: с r 0.6–3.5
+# приземляешься на r 5.4–8.3, у края или уже за ним. Последствие удара метлой одинаково по всей длине бруса
+SWEEP_SPLIT, SWEEP_PUSH_IN = 3.5, 12.0
+# колонна под током с фазы невесомости: каждые SHOCK_EVERY с отталкивает всех в радиусе SHOCK_R от оси. При
+# гравитации ×0.5 полёт 0.48 с, отлёт 3.4 м — с r 1.2 на r 4.6, под метлы. Стоять у колонны в финале нельзя
+SHOCK_R, SHOCK_EVERY, SHOCK_PUSH, SHOCK_LIFT = 1.9, 1.5, 7.0, 3.0
 HORSE_R = 6.5         # кольцо шестов с лошадками
 HORSE_LOW = -0.25     # нижняя точка лошадки: седло на 0.8 м над полом — запрыгнуть можно (прыжок 0.98 м)
 HORSE_RISE = 0.9      # ход вверх; на подъёме седло 1.7 м — брусья (0.55 м) проходят под стоящим на нём
@@ -93,7 +100,7 @@ def build(name: str, workshop: str = WORKSHOP) -> str:
     def tex(fn): return mod.add_file_asset("texture", os.path.join(ASSETS, "textures", fn))
     def wav(fn): return mod.add_file_asset("audio", os.path.join(ASSETS, "audio", fn))
     deck_obj, roof_obj, debris_obj = prop("carousel_deck.obj"), prop("carousel_roof.obj"), prop("debris.obj")
-    sector_obj = prop("carousel_sector.obj")
+    sector_obj, zone_obj = prop("carousel_sector.obj"), prop("crown_zone.obj")
     creak_wav = wav("creak.wav")
     horse_obj, headless_obj = prop("horse.obj"), prop("horse_headless.obj")
     # колесо из двух моделей: крутится только ротор, опоры стоят (pivot у обеих в ступице)
@@ -151,8 +158,19 @@ def build(name: str, workshop: str = WORKSHOP) -> str:
             act_wait(EDGE_WARN),
             act_play_tween([sector.transform_guid], Tween.LOCAL_POSITION, end=(0, -8, 0), seconds=1.0, ease=Ease.EASE_IN_QUAD),
             act_set_active(ActiveState.DISABLED, [sector.transform_guid]))))
-    carousel.add(obj("Column", pos=(0, ROOF_H / 2, 0), scale=(1.0, ROOF_H, 1.0), layer=LAYER_WORLD_WALL)
-                 .prop(PROP_CUBE, collision=Collision.BOX, materials=[metal_mat.guid]))
+    column = carousel.add(obj("Column", pos=(0, ROOF_H / 2, 0), scale=(1.0, ROOF_H, 1.0), layer=LAYER_WORLD_WALL)
+                          .prop(PROP_CUBE, collision=Collision.BOX, materials=[metal_mat.guid]))
+    # колонна под током (финал): неподвижный триггер на оси, выключен до T_GRAVITY. On Stay с интервалом даёт толчок
+    # каждому, кто внутри, в кадре срабатывания (ModTrigger.OnEvent, проверено на зоне короны Mascot Throne).
+    # Объект стоит на оси, поэтому Towards Source — от колонны наружу. Красное кольцо на полу — граница зоны
+    shock = world.add(obj("ColumnShock", pos=(0, DECK_Y, 0), active=False).trigger(
+        TriggerShape.CAPSULE, radius=SHOCK_R, height=3.0, center=(0, 1.2, 0), stay_interval=SHOCK_EVERY,
+        on_stay=[act_change_velocity(SHOCK_PUSH, VelocityDir.TOWARDS_SOURCE, Op.ADD),
+                 act_change_velocity(SHOCK_LIFT, VelocityDir.UP, Op.ADD),
+                 act_play_sound(sweep_wav.guid, 0.7, Targets.RECEIVER)]))
+    ring_k = SHOCK_R / 2.4   # crown_zone.obj — кольцо r 2.25…2.5 под r 2.4
+    shock.add(obj("Ring", pos=(0, 0.03, 0), scale=(ring_k, 1, ring_k))
+              .prop(zone_obj.guid, collision=Collision.NONE, shadow=Shadow.OFF, tint=(1.0, 0.15, 0.1, 1)))
     # крыша твёрдая по форме конуса (Mesh): Box по габариту сделал бы плоский потолок и плоский верх
     carousel.add(obj("Roof", pos=(0, ROOF_H, 0), scale=(0.9, 0.7, 0.9), layer=LAYER_WORLD_WALL)
                  .prop(roof_obj.guid, collision=Collision.MESH, materials=[paint_mat.guid]))
@@ -180,11 +198,15 @@ def build(name: str, workshop: str = WORKSHOP) -> str:
         # Enable срабатывает, когда Director включает кольцо: с этого момента оно разгоняется
         ring.logic(trig_enable(*spin_chain(ring.transform_guid, ramp, ROUND - enabled_at)))
         for k, deg in enumerate(angles):
-            arm = ring.add(obj(f"Sweeper_{k}", rot=(0, deg, 0)).trigger(
-                TriggerShape.BOX, size=(0.9, 1.4, length), center=(0, 0.7, mid),
-                on_enter=[act_change_velocity(SWEEP_PUSH, VelocityDir.TOWARDS_SOURCE, Op.ADD),
-                          act_change_velocity(SWEEP_LIFT, VelocityDir.UP, Op.ADD),
-                          act_play_sound(sweep_wav.guid, 0.9, Targets.RECEIVER)]))
+            # брус — один объект, триггеров два: у колонны (до SWEEP_SPLIT) толчок сильнее, дальше — обычный
+            arm = ring.add(obj(f"Sweeper_{k}", rot=(0, deg, 0)))
+            for part, z0, z1, push in (("Inner", SWEEP_FROM, SWEEP_SPLIT, SWEEP_PUSH_IN),
+                                       ("Outer", SWEEP_SPLIT, DECK_R, SWEEP_PUSH)):
+                arm.add(obj(part).trigger(
+                    TriggerShape.BOX, size=(0.9, 1.4, z1 - z0), center=(0, 0.7, (z0 + z1) / 2),
+                    on_enter=[act_change_velocity(push, VelocityDir.TOWARDS_SOURCE, Op.ADD),
+                              act_change_velocity(SWEEP_LIFT, VelocityDir.UP, Op.ADD),
+                              act_play_sound(sweep_wav.guid, 0.9, Targets.RECEIVER)]))
             arm.add(obj("Bar", pos=(0, 0.35, mid), scale=(0.35, 0.4, length))
                     .prop(PROP_CUBE, collision=Collision.NONE, tint=tint))
         return ring
@@ -276,7 +298,9 @@ def build(name: str, workshop: str = WORKSHOP) -> str:
             # низкая гравитация вдвое удлиняет полёт от удара (0.36 → 0.72 с, отлёт ~2.5 → ~5 м): на диске r 7
             # почти любой удар становится смертельным — это финальная фаза, после неё раунд обычно кончается за секунды
             act_set_gravity((0, -GRAVITY / 2, 0)),
-            act_show_message("Невесомость! / Low gravity!", 2.0))))
+            act_show_message("Невесомость! Колонна под током! / Low gravity! The pole is live!", 2.5),
+            act_set_color((1.0, 0.2, 0.1, 1.0), targets=[column.transform_guid]),
+            act_set_active(ActiveState.ENABLED, [shock.transform_guid]))))
     mod.add(obj("Notes").note("Сгенерировано build_mod.py из packs/abandoned-park/minigames/death-carousel/DESIGN.md"))
     out = mod.write(workshop)
 

@@ -31,13 +31,16 @@ CAROUSEL_ROOF_Y = 2.6     # низ крыши карусели; верх кол�
 TICKET_DELAY = (6.0, 11.0)    # секунд до нового билета после подбора (было 4–8)
 # дефицит (прожарка 2026-10-25): было 14 билетов одновременно на 4–6 игроков — каждый собирал свои и не встречал
 # соперников. Теперь 8: крыши через одну, 2 у карусели, 2 случайных
-ROOF_TICKETS = (0, 2, 4, 6)   # киоски с билетом на крыше
+ROOF_TICKETS = (0, 2, 4, 6)   # киоски, на крыше которых может появиться билет
+# на крышах одновременно ROOF_COUNT билетов из 4 мест, каждый новый — в случайной свободной точке (разбор 2026-10-25):
+# с постоянными точками круг по крышам заучивался за 2–3 матча и решал раунд. Пустая крыша видна снизу — билет ×1.5
+ROOF_COUNT = 3
 # батуты только к крышам с билетом и к крыше карусели (седьмой): батут к пустой крыше обещал награду и не давал её.
 # На месте убранных — низкий ящик, чтобы кольцо между киосками не стало прямой дорожкой (прожарка 2026-10-25, Q2)
 PADS = ROOF_TICKETS + (7,)
 LOOT_VALUE = 1                # выпадает из умершего: убийство окупается (Q1). Не больше 1: у жертвы с 0–3 билетами
 LOOT_LIFT = 0.9               # отнимается 0–1, и +2 сделали бы выгодной охоту на бедных
-RANDOM_COUNT = 2
+RANDOM_COUNT = 3              # на полу; всего одновременно ROOF_COUNT + 2 у карусели + RANDOM_COUNT = 8, как было
 JACKPOT_AT = 40.0             # с этой секунды у пруда появляется большой билет +3 — разгон к концу раунда
 JACKPOT_VALUE = 3
 JACKPOT_DELAY = (8.0, 12.0)
@@ -273,7 +276,7 @@ def build(name: str, workshop: str = WORKSHOP) -> str:
     for i, (x, z) in enumerate(((17, 17), (-17, 17), (17, -17), (-17, -17))):
         spawns.add(obj(f"Respawn_{i}", pos=(x, 1, z)).player_spawn(SpawnShape.POINT, SpawnUsage.RESPAWN))
 
-    # --- билеты: 4 на крышах киосков, 2 у карусели (внутри круга лошадок и на крыше), 2 в случайных точках
+    # --- билеты: 3 на 4 крышах киосков, 2 у карусели (внутри круга лошадок и на крыше), 3 в 12 случайных точках пола
     spawners = mod.add(obj("Ticket Spawners"))
     specials = []   # особые узлы сетки ботов: точка каждого билета, батуты, крыши
 
@@ -282,12 +285,16 @@ def build(name: str, workshop: str = WORKSHOP) -> str:
         return spawners.add(obj(name, pos=pos, active=active).spawner(
             [item.guid], interval=(1.0, None), delay=delay, kind=SpawnerType.ON_DESTRUCTION, **kw))
 
+    roof_targets = spawners.add(obj("Roof_Points"))
+    roof_objs = []
     for i in ROOF_TICKETS:
         a, r = booth_angle(i), 12.3   # центр крыши (козырёк смещает габарит киоска наружу)
         roof = (r * math.cos(a), BOOTH_TOP + 0.6, r * math.sin(a))
-        ticket_spawner(f"Roof_{i}", roof)
+        roof_objs.append(roof_targets.add(obj(f"Roof_{i}", pos=roof)))
         specials += [{"name": f"Nav_Pad_{i}", "pos": (pads[i].pos[0], 0.5, pads[i].pos[2]), "kind": "pad"},
                      {"name": f"Nav_Roof_{i}", "pos": (roof[0], BOOTH_TOP + 0.5, roof[2]), "kind": "roof", "pad": f"Nav_Pad_{i}"}]
+    ticket_spawner("Roofs", (0, BOOTH_TOP + 0.6, 0), location=SpawnerLocation.ON_TARGETS,
+                   spawn_points=[p.transform_guid for p in roof_objs], count=ROOF_COUNT)
     # батут 7 ведёт ещё и на крышу карусели — его узел нужен, даже если на киоске 7 билета нет
     if 7 not in ROOF_TICKETS:
         specials.append({"name": "Nav_Pad_7", "pos": (pads[7].pos[0], 0.5, pads[7].pos[2]), "kind": "pad"})

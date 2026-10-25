@@ -93,46 +93,43 @@ oooooooooo
  52 Ticket Spawners/Carousel_Inner  [spawner] (5.0, 0.6, -5.0)
  53 Ticket Spawners/Carousel_Roof  [spawner] (4.0, 4.3, -5.0)
  54 Ticket Spawners/Random  [spawner] (0.0, 0.6, 0.0)
- 55 Ticket Spawners/Roof_0  [spawner] (12.1, 3.0, 2.4)
- 56 Ticket Spawners/Roof_2  [spawner] (-2.4, 3.0, 12.1)
- 57 Ticket Spawners/Roof_4  [spawner] (-12.1, 3.0, -2.4)
- 58 Ticket Spawners/Roof_6  [spawner] (2.4, 3.0, -12.1)
- 59 World/Booth_0  [wall] (11.8, 0.0, 2.3) 3.6×3.0 м, h 0.0..2.4
- 60 World/Booth_1  [wall] (6.7, 0.0, 10.0) 3.8×4.0 м, h 0.0..2.4
- 61 World/Booth_2  [wall] (-2.3, 0.0, 11.8) 3.0×3.6 м, h 0.0..2.4
- 62 World/Booth_3  [wall] (-10.0, 0.0, 6.7) 4.0×3.8 м, h 0.0..2.4
- 63 World/Booth_4  [wall] (-11.8, 0.0, -2.3) 3.6×3.0 м, h 0.0..2.4
- 64 World/Booth_5  [wall] (-6.7, 0.0, -10.0) 3.8×4.0 м, h 0.0..2.4
- 65 World/Booth_6  [wall] (2.3, 0.0, -11.8) 3.0×3.6 м, h 0.0..2.4
- 66 World/Booth_7  [wall] (10.0, 0.0, -6.7) 4.0×3.8 м, h 0.0..2.4
- 67 World/Carousel  [animator] (4.0, 0.0, -5.0)
- 68 World/Carousel/Horse_0  [wall] (6.0, 0.0, -5.0) 0.4×1.9 м, h 0.2..1.6
- 69 World/Carousel/Horse_1  [wall] (4.0, 0.0, -3.0) 1.9×0.5 м, h 0.2..1.6
- 70 World/Carousel/Horse_2  [wall] (2.0, 0.0, -5.0) 0.5×1.9 м, h 0.2..1.6
- 71 World/Carousel/Horse_3  [wall] (4.0, 0.0, -7.0) 1.9×0.5 м, h 0.2..1.6
- 72 World/Carousel/Pole  [wall] (4.0, 1.3, -5.0) 0.2×0.2 м, h 0.0..2.6
- 73 World/Carousel/Roof  [decor_high] (4.0, 2.6, -5.0) 3.4×3.3 м, h 2.6..3.7
- 74 World/FerrisWheel  [decor] (0.0, 7.1, -28.0) 6.8×2.3 м, h -0.2..7.3
- 75 World/FerrisWheel/Rotor  [decor, mover] (0.0, 7.1, -28.0) 12.3×1.3 м, h 0.5..13.2
- 76 World/JumpPad_0  [velocity] (9.4, 0.0, 1.9)
- 77 World/JumpPad_2  [velocity] (-1.9, 0.0, 9.4)
- 78 World/JumpPad_4  [velocity] (-9.4, 0.0, -1.9)
- 79 World/JumpPad_6  [velocity] (1.9, 0.0, -9.4)
- 80 World/JumpPad_7  [velocity] (8.1, 0.0, -5.4)
- 81 World/JumpPad_0/Plate  [decor] (9.4, 0.1, 1.9) 2.2×2.2 м, h 0.0..0.2
- 82 World/JumpPad_2/Plate  [decor] (-1.9, 0.1, 9.4) 2.2×2.2 м, h 0.0..0.2
- 83 World/JumpPad_4/Plate  [decor] (-9.4, 0.1, -1.9) 2.2×2.2 м, h 0.0..0.2
- 84 World/JumpPad_6/Plate  [decor] (1.9, 0.1, -9.4) 2.2×2.2 м, h 0.0..0.2
- 85 World/JumpPad_7/Plate  [decor] (8.1, 0.1, -5.4) 2.2×2.2 м, h 0.0..0.2
- 86 World/PadCrate_1  [low] (5.3, 0.3, 8.0) 2.6×2.2 м, h 0.0..0.7
- 87 World/PadCrate_3  [low] (-8.0, 0.3, 5.3) 2.2×2.6 м, h 0.0..0.7
- 88 World/PadCrate_5  [low] (-5.3, 0.3, -8.0) 2.6×2.2 м, h 0.0..0.7
- 89 World/Pond  [water] (0.0, -0.3, 4.0)
- 90 World/Pond/KillVolume  [kill] (0.0, -0.9, 4.0)
- 91 World/PondCurb_E  [decor] (4.2, 0.1, 4.0) 0.3×8.0 м, h 0.0..0.1
- 92 World/PondCurb_N  [decor] (0.0, 0.1, 8.1) 8.6×0.3 м, h 0.0..0.1
- 93 World/PondCurb_S  [decor] (0.0, 0.1, -0.2) 8.6×0.3 м, h 0.0..0.1
- 94 World/PondCurb_W  [decor] (-4.2, 0.1, 4.0) 0.3×8.0 м, h 0.0..0.1
+ 55 Ticket Spawners/Roofs  [spawner] (0.0, 3.0, 0.0)
+ 56 World/Booth_0  [wall] (11.8, 0.0, 2.3) 3.6×3.0 м, h 0.0..2.4
+ 57 World/Booth_1  [wall] (6.7, 0.0, 10.0) 3.8×4.0 м, h 0.0..2.4
+ 58 World/Booth_2  [wall] (-2.3, 0.0, 11.8) 3.0×3.6 м, h 0.0..2.4
+ 59 World/Booth_3  [wall] (-10.0, 0.0, 6.7) 4.0×3.8 м, h 0.0..2.4
+ 60 World/Booth_4  [wall] (-11.8, 0.0, -2.3) 3.6×3.0 м, h 0.0..2.4
+ 61 World/Booth_5  [wall] (-6.7, 0.0, -10.0) 3.8×4.0 м, h 0.0..2.4
+ 62 World/Booth_6  [wall] (2.3, 0.0, -11.8) 3.0×3.6 м, h 0.0..2.4
+ 63 World/Booth_7  [wall] (10.0, 0.0, -6.7) 4.0×3.8 м, h 0.0..2.4
+ 64 World/Carousel  [animator] (4.0, 0.0, -5.0)
+ 65 World/Carousel/Horse_0  [wall] (6.0, 0.0, -5.0) 0.4×1.9 м, h 0.2..1.6
+ 66 World/Carousel/Horse_1  [wall] (4.0, 0.0, -3.0) 1.9×0.5 м, h 0.2..1.6
+ 67 World/Carousel/Horse_2  [wall] (2.0, 0.0, -5.0) 0.5×1.9 м, h 0.2..1.6
+ 68 World/Carousel/Horse_3  [wall] (4.0, 0.0, -7.0) 1.9×0.5 м, h 0.2..1.6
+ 69 World/Carousel/Pole  [wall] (4.0, 1.3, -5.0) 0.2×0.2 м, h 0.0..2.6
+ 70 World/Carousel/Roof  [decor_high] (4.0, 2.6, -5.0) 3.4×3.3 м, h 2.6..3.7
+ 71 World/FerrisWheel  [decor] (0.0, 7.1, -28.0) 6.8×2.3 м, h -0.2..7.3
+ 72 World/FerrisWheel/Rotor  [decor, mover] (0.0, 7.1, -28.0) 12.3×1.3 м, h 0.5..13.2
+ 73 World/JumpPad_0  [velocity] (9.4, 0.0, 1.9)
+ 74 World/JumpPad_2  [velocity] (-1.9, 0.0, 9.4)
+ 75 World/JumpPad_4  [velocity] (-9.4, 0.0, -1.9)
+ 76 World/JumpPad_6  [velocity] (1.9, 0.0, -9.4)
+ 77 World/JumpPad_7  [velocity] (8.1, 0.0, -5.4)
+ 78 World/JumpPad_0/Plate  [decor] (9.4, 0.1, 1.9) 2.2×2.2 м, h 0.0..0.2
+ 79 World/JumpPad_2/Plate  [decor] (-1.9, 0.1, 9.4) 2.2×2.2 м, h 0.0..0.2
+ 80 World/JumpPad_4/Plate  [decor] (-9.4, 0.1, -1.9) 2.2×2.2 м, h 0.0..0.2
+ 81 World/JumpPad_6/Plate  [decor] (1.9, 0.1, -9.4) 2.2×2.2 м, h 0.0..0.2
+ 82 World/JumpPad_7/Plate  [decor] (8.1, 0.1, -5.4) 2.2×2.2 м, h 0.0..0.2
+ 83 World/PadCrate_1  [low] (5.3, 0.3, 8.0) 2.6×2.2 м, h 0.0..0.7
+ 84 World/PadCrate_3  [low] (-8.0, 0.3, 5.3) 2.2×2.6 м, h 0.0..0.7
+ 85 World/PadCrate_5  [low] (-5.3, 0.3, -8.0) 2.6×2.2 м, h 0.0..0.7
+ 86 World/Pond  [water] (0.0, -0.3, 4.0)
+ 87 World/Pond/KillVolume  [kill] (0.0, -0.9, 4.0)
+ 88 World/PondCurb_E  [decor] (4.2, 0.1, 4.0) 0.3×8.0 м, h 0.0..0.1
+ 89 World/PondCurb_N  [decor] (0.0, 0.1, 8.1) 8.6×0.3 м, h 0.0..0.1
+ 90 World/PondCurb_S  [decor] (0.0, 0.1, -0.2) 8.6×0.3 м, h 0.0..0.1
+ 91 World/PondCurb_W  [decor] (-4.2, 0.1, 4.0) 0.3×8.0 м, h 0.0..0.1
 ```
 
 Цвета: серый — пол; оранжевый — стены (выше прыжка); жёлтый — низкие препятствия (перепрыгнуть); зелёный — декор без коллизии; ярче = выше. Синий — вода; красная штриховка — триггер с Kill/Damage; оранжевая рамка — триггер скорости/гравитации; жёлтая пунктирная — прочие триггеры; зелёные точки — стартовые спавны, голубые квадраты — респаун; золотые — спавнеры/предметы; розовые круги — Mover/Simple Animator; розовый пунктир — пустая клетка. Голубые линии и точки — сетка ботов (AI Navigation Node; точка ближе к концу линии — направление связи; белые узлы — выше пола, на крышах); золотые кольца — точки, из которых спавнер выбирает место (OnTargets).

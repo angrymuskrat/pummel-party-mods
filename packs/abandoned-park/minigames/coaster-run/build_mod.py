@@ -50,6 +50,12 @@ PLATE = 1.8
 PLATE_TOPS = (9.3, 9.6, 9.4, 9.8, 10.0, 9.7)   # перепад соседних ≤ 0.4 м
 PLATE_BOB = {1: 0.7, 4: 0.7}   # качаются вверх на столько, 0.3 цикла/с; в верхней точке на них не запрыгнуть
 PLATE_RUST = (2, 5)
+# срезка по хорде петли (разбор 2026-10-25): после подъёма отстающему нечем было отыграться. Балка 1 м шириной
+# напрямую с CP4 на CP5 над кислотой: 17.7 м против ~22 м дуги с шестью прыжками, выигрыш 2–3 с. В середине —
+# ржавый пролёт 4 м (не перепрыгнуть), пропадает на 2.5 с каждые 5–7 с: надо угадать момент. Лидеру выгоднее петля,
+# отстающему — рискнуть. Упавший с хорды — в ловушку петли (верх 8.3 ниже дна балки) → CP4
+CHORD = ((2.0, 9.0, 77.0), (14.6, 9.5, 89.6))   # концы верхней грани: на площадке CP4 и на CP5
+CHORD_W, CHORD_RUST = 1.0, (0.4, 0.62)          # ширина; ржавый кусок — доли длины от начала
 CP5 = (14.0, 19.0, 89.0, 95.0, 9.5)   # x0, x1, z0, z1, верх
 DROP_END = (31.0, 5.0)     # спуск до x 31, y 5
 PAD_X = (32.0, 34.2)       # батут на нижней площадке у края; разрыв до финиша 1.8 м, но финиш на 2 м выше
@@ -181,6 +187,7 @@ def build(name: str, workshop: str = WORKSHOP) -> str:
                 crumbling(f"RustLogic_{'LCR'[li]}_{si}", seg, pos=(x, TRACK_Y, (z0 + z1) / 2))
             nodes += [(x, TRACK_Y + 0.5, z0 + 1.0), (x, TRACK_Y + 0.5, z1 - 0.6)]
         lanes_nav.append(nodes)
+    gate("Gate_S2", (0, TRACK_Y + 1.5, 24.0), (16.0, 3.0, 1.0))   # середина рельсов, на всех трёх дорожках
     # боты идут по левой: разрывы 2.4 м они берут сами (прыгают, сбегая с края), ржавые пролёты и 3 м — нет
     nav_points += [(f"Nav_L_{i}", p) for i, p in enumerate(lanes_nav[0])]
 
@@ -266,6 +273,17 @@ def build(name: str, workshop: str = WORKSHOP) -> str:
                           .prop(PROP_CUBE, collision=Collision.NONE, materials=[metal_mat.guid]))
         nav_points.append((f"Nav_Loop_{i}", (px, top + 0.5, pz)))
 
+    # --- срезка по хорде петли: три куска балки, средний ржавый — пропадает по таймеру, как пролёты S2
+    (ax, ay, az), (bx, by, bz) = CHORD
+    lerp = lambda t: (ax + (bx - ax) * t, ay + (by - ay) * t, az + (bz - az) * t)   # noqa: E731
+    r0, r1 = CHORD_RUST
+    for nm, t0, t1, rusty in (("Chord_0", 0.0, r0, False), ("Chord_Rust", r0, r1, True), ("Chord_1", r1, 1.0, False)):
+        piece = track.add(ramp(nm, lerp(t0), lerp(t1), CHORD_W, 0.4, layer=LAYER_WORLD_GROUND)
+                          .prop(PROP_CUBE, collision=Collision.BOX, materials=[] if rusty else [metal_mat.guid],
+                                tint=rust_tint if rusty else (0.85, 0.85, 0.85, 1)))
+        if rusty:
+            crumbling("RustLogic_Chord", piece, period=(5.0, 7.0), pos=lerp((t0 + t1) / 2))
+
     # --- S5 площадка CP5, спуск с барьерами, батут, финиш
     px0, px1, pz0, pz1, ptop = CP5
     track.add(slab("CP5Deck", px0, px1, pz0, pz1, ptop, layer=LAYER_WORLD_GROUND)
@@ -281,6 +299,9 @@ def build(name: str, workshop: str = WORKSHOP) -> str:
         track.add(obj(f"Hurdle_{k}", pos=(hx, hy + 0.2, TRACK_Z), rot=(0, 0, -math.degrees(math.atan(slope))),
                       scale=(0.3, 0.4, 3.2), layer=LAYER_WORLD_WALL)
                   .prop(PROP_CUBE, collision=Collision.BOX, materials=[paint_mat.guid]))
+    # ещё два рубежа на спуске и у батута: кто не добежал, делили места при 0–3 рубежах
+    gate("Gate_Drop", (25.0, ptop - (25.0 - px1) * slope + 1.5, TRACK_Z), (1.0, 3.0, 3.2))
+    gate("Gate_Pad", (dx + 0.5, dy + 1.5, TRACK_Z), (1.0, 3.0, 3.2))
     track.add(slab("PadDeck", dx, PAD_X[1], TRACK_Z - 1.6, TRACK_Z + 1.6, dy, layer=LAYER_WORLD_GROUND)
               .prop(PROP_CUBE, collision=Collision.BOX, materials=[metal_mat.guid]))
     pad = track.add(obj("JumpPad", pos=((PAD_X[0] + PAD_X[1]) / 2, dy, TRACK_Z)).trigger(
