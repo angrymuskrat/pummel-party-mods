@@ -400,6 +400,20 @@ def anim_rotate_around_axis(frequency: float, axis=(0, 1, 0)) -> dict:
                       [_anim_layer(frequency, 1, axis, [_curve_key(0.0, 0.0, 0.0, 1.0), _curve_key(1.0, 1.0, 1.0, 0.0)])])
 
 
+def anim_swing(frequency: float, degrees: float, axis=(0, 1, 0), offset=0.0) -> dict:
+    """Пресет 0 (Custom Animation): качание от −degrees до +degrees вокруг axis и обратно, frequency — циклов в секунду.
+    Поворот слоя = AngleAxis(кривая · 360°, axis) поверх исходного поворота объекта (SimpleAnimationLayer.GetAnimatedRotation;
+    ModSimpleAnimator включает SetServerControlState — исходный поворот сохраняется, время у клиентов берётся с сервера).
+    Кривая −1→1→−1 с плоскими касательными, как у слоёв Orbit; offset — сдвиг фазы в долях цикла (0…1).
+    Образца Custom в сценах игры нет: имя и подсказка — из ModSimpleAnimations.CustomAnimation (декомпиляция 2026-10-25)."""
+    k = degrees / 360.0
+    return _animation(0, "Custom Animation",
+                      "Animate this object freely using animation layers. \nEach layer applies some movement or rotation to the "
+                      "object as defined by that layer's settings and animation curve.",
+                      [_anim_layer(frequency, 1, axis, [_curve_key(0.0, -k, 0.0, 0.0), _curve_key(0.5, k, 0.0, 0.0),
+                                                        _curve_key(1.0, -k, 0.0, 0.0)], offset=offset)])
+
+
 # ---------------------------------------------------------------- объекты и компоненты
 
 @dataclass

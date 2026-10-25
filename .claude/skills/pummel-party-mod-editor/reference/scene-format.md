@@ -109,6 +109,23 @@ LowPolyCube `cfc9faf9-3852-4dbe-803b-32cec4c94139`, LowPolyPlane `e314a70b-98f2-
 
 - **Гонки: финиш, места, возвраты** (прочитано 2026-10-24 для Coaster Run). `Set Placement` → `SimpleModPlayer.SetFinished`: один раз за раунд прибавляет к очкам 100 · (N − k), где k — сколько уже финишировали, и показывает «… finished»; игрок **остаётся в игре** (ходит, бьёт). `FinishMinigame` завершает раунд, когда финишировали все. `Finish Order` отдельной логики не имеет — `BuildResults` берёт очки, поэтому дополнительные очки за рубежи ранжируют тех, кто не добежал. Респаун (`ModPlayerSpawn.DetermineRespawnPoint`) выбирает **случайный** спавн с `Respawn`, так что чекпоинтами спавны быть не могут. Шаблон `Third Person Obstacle Course` возвращает упавших триггерами под секциями: `Position Action` (`Set`, World) на `Source` — он просто ставит `transform.position`. `Match Transform` на игроке после этого вызывает `SimpleModPlayer.TeleportPlayer` (сброс агента, поворот модели и камеры по Y); в `pmgen` — `act_match_transform(..., flags=Targets.SOURCE)`.
 - **Прыжки ботов** (`SimpleModPlayer.GetAIInput`): бот жмёт прыжок, как только оторвался от опоры дольше 0.35 · `coyoteTime`, но не чаще раза в 0.5 с. То есть он прыгает, сбегая с края, и разрывы до ~3 м по пути между узлами берёт сам; запрыгивать на уступы выше ступеньки он не умеет.
+- **Выстрел игроком** (прочитано 2026-10-25 для Human Cannonball, в игре не проверено):
+  - `Change Player Velocity` с `Direction Type` = `Custom` берёт вектор `m_customDir` **без нормализации** и умножает на `Speed` (`ChangeVelocityAction.GetDir`). При `Space` = `Local` вектор умножается на `localToWorldMatrix` объекта из `Local Space Of`: `Source` 0, `Receiver` 1 (у триггера — его объект), `Target` 2. Масштаб тоже входит в вектор. Действие выполняет только владелец игрока, и только живого.
+  - В воздухе `CharacterMover` тянет горизонтальную скорость к «ввод × бег» с темпом `midAirMovementAcceleration`: игра пишет его и в `airAcceleration`, и в `airDeceleration` (`SimpleModPlayer.ApplyModSettings`). Шаг идёт вдоль нормали разности, раздельно по X и Z. Поэтому быстрый полёт гасится одинаково при вводе «вперёд», «назад» и без ввода, а вбок доруливают слабее, чем дал бы полный темп. В кадр `Set` расчёт скорости пропускается (`m_velocityWasSet`).
+  - Гравитация игрока = `playerGravity` (`ApplyCustomForces`: базовая −9.81 · `playerGravity` / 9.81).
+- **`ServerRelay` держит цепочку** (`ModActionRunner`). Клиент не выполняет действие `ServerRelay` (`Match Transform`, `Set Active`, `Play Tween`, `Spawn Prefab`), пока сервер его не ретранслирует. Следующие действия ждут его же (тайм-аут 10 с). Так что «`Match Transform` → `Change Player Velocity`» задаёт скорость уже после переноса.
+- **Между раундами** (`SimpleModController.RoundEnded`/`StartNewRound`) игра переносит игроков на стартовые спавны, восстанавливает здоровье и снимает флаги финиша. Очки **не** обнуляются. Сцена не перезагружается: выключенные объекты и сдвинутые твинами остаются как были.
+  - **Пауза между раундами:** 1 с до переноса на старт (`m_roundResetDelay`) и 2 с до нового раунда (`m_roundStartDelay`).
+  - Физика игрока в паузе идёт: `UpdateController` работает у любого живого игрока, только ввод обнулён.
+  - Смерти нет: `KillPlayer` пропускает её при `m_isBetweenRounds`.
+  - Скорость персонажа перенос не обнуляет (`TeleportPlayer`).
+  - Вывод: под каждой смертельной зоной, куда можно упасть в конце раунда, нужен твёрдый пол, иначе игрок падает в пустоту (Human Cannonball, плейтест 2026-10-25).
+- **`One Use Per Player` навсегда.** `ModTrigger.m_activatedPlayers` не очищается ни при смерти, ни между раундами. В игре на несколько раундов такой триггер во втором раунде уже молчит.
+- **`Round Start` и выключенные объекты.** `RoundStartTrigger` подписывается на `GameManager.Minigame.OnNewRoundStart` в `OnEnable` и отписывается в `OnDisable` (только на сервере). Выключенный объект событие не получает. Отсюда смена раунда без счётчика: этапы `Stage_1..N`, включён первый, каждый по `Round Start` включает следующий и выключает себя (Human Cannonball).
+- **`Simple Animator` по коду** (`SimpleAnimator`, `SimpleAnimationLayer`):
+  - `ModSimpleAnimator` включает `SetServerControlState`: на клиентах время = `SmoothServerTime`, движение синхронно; исходный поворот объекта сохраняется (`m_useBaseRotation`).
+  - Слой поворота — `AngleAxis(кривая(t) · 360°, AnimationAxis)` поверх исходного поворота; слой позиции — `кривая(t) · AnimationAxis` от исходной позиции.
+  - Пресет `Custom` (0) — произвольные слои, имя «Custom Animation» (`ModSimpleAnimations.CustomAnimation`); в `pmgen` — `anim_swing`.
 
 ## Статус проверки в редакторе
 

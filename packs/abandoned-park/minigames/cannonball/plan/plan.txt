@@ -1,0 +1,151 @@
+# План сцены: Human Cannonball
+сцена: WorkshopMods/Human Cannonball/Data/MainScene.scene
+
+## Метрики
+- Пол: 30.0 × 37.4 м по габаритам, площадь пола 446 м², высота пола 0.15; диагональ 48 м ≈ 8.0 с бега
+- Движение (ModSettings): бег 6.0 м/с; прыжок 1.20 м вверх, ≈4.8 м в длину; ступенька 0.20 м
+- Раунд: 45.0 с × 3; тип игрока ThirdPerson
+- Занятость пола: стены 1.7%, низкие (перепрыгиваемые) 8.2%, опасность 0.0%, вода 0.0%, ускорители 9.1%, свободно 81.0%
+- Связность: из стартовых спавнов пешком достижимо 77% проходимой площади (без прыжков и jump pad)
+- Самая большая пустая площадка: круг радиусом 4.1 м с центром (-5.6, -7.6) — 0.7 с бега от края до центра
+- Самый длинный прямой пробег без помех (игрок радиусом 0.4 м): 29 м вдоль X (z=-8.1), 9 м вдоль Z (x=-5.1) — 4.8 с бега
+- Плотность на 100 м² пола: препятствия 4.7, декор 12.1, точки интереса 4.3 (всего: 21 / 54 / 19); ограждение по краю: 22; объектов задника вне пола: 60
+- Спавн → 3 ближайшие цели на полу (спавнеры и предметы; если их нет — точки интереса), путь пешком: от 6.8 до 8.2 м, разброс ×1.21 — честно (порог ×1.5); по спавнам: (-8, -7) 8.2, (-6, -7) 7.4, (-3, -7) 6.8, (-1, -7) 7.0, (1, -7) 7.1, (3, -7) 6.8, (6, -7) 7.3, (8, -7) 8.2
+- Ориентиры (самые высокие): Hill_11 17.1 м в (58, -26) вне пола; Tent_0 15.6 м в (-22, 45) вне пола; Rotor 13.9 м в (0, 52) вне пола; Hill_9 13.7 м в (-5, -56) вне пола; Tent_1 13.1 м в (21, 46) вне пола; Hill_8 13.1 м в (-32, -53) вне пола
+- Движется (10): FloatingBarrel ×5 — Move Along Line 0.3/с; Swing — Custom Animation 0.222222/с; Swing — Custom Animation 0.181818/с; Swing — Custom Animation 0.2/с; Swing — Custom Animation 0.25/с; Rotor — вращение 10°/с
+- Сетка ботов: 1 узлов, 0 направленных связей, без связей 1, целей Is AI Goal 1 (все боты пойдут к первой!)
+- Пустые клетки 4×4 м (ни препятствия, ни декора, ни интереса): 12 из 34 (35%)
+
+## Карта клеток 4 м (север сверху; . пусто, d декор, o препятствие, * интерес, ~ опасность, # стена)
+```
+   ..   
+   *.   
+        
+  * *d  
+  . ..  
+        
+        
+o*o**o*o
+o......o
+oooooooo
+```
+
+## Легенда номеров на plan.png
+```
+   AI Navigation/* ×1  [узлы сетки ботов — голубые точки на плане]
+  1 Backdrop/FallVolume  [kill] (0.0, -8.0, 0.0)
+  2 Backdrop/FarShore  [decor] (0.0, -0.2, 47.0) 70.0×12.0 м, h -1.0..0.6
+  3 Backdrop/FerrisWheel  [decor] (0.0, 7.9, 52.0) 6.8×2.3 м, h 0.7..8.1
+  4 Backdrop/FerrisWheel/Rotor  [decor, mover] (0.0, 7.9, 52.0) 12.3×1.3 м, h 1.3..14.0
+  5 Backdrop/GiantMascot  [decor] (0.0, 0.6, 43.0) 10.4×4.0 м, h 0.6..10.3
+  6 Backdrop/OuterGround  [decor] (0.0, -1.3, 10.0) 180.0×180.0 м, h -1.3..-1.3
+  7 Backdrop/Tent_0  [decor] (-22.0, 7.8, 45.0) 25.7×25.0 м, h 7.8..15.7
+  8 Backdrop/Tent_1  [decor] (21.0, 6.6, 46.0) 21.8×21.1 м, h 6.6..13.3
+  9 Cannons/Cannon_CE/Swing  [animator] (3.0, 0.0, -2.5)
+ 10 Cannons/Cannon_CE/Swing/AimPole/Bob  [decor] (0.8, 1.3, 23.1) 0.5×0.5 м, h 1.0..1.5
+ 11 Cannons/Cannon_CE/Swing/AimPole/Pole  [decor] (0.8, -0.2, 23.1) 0.2×0.2 м, h -1.5..1.1
+ 12 Cannons/Cannon_CE/Swing/Badge  [decor] (3.0, 2.0, -2.8) 0.5×0.5 м, h 1.8..2.2
+ 13 Cannons/Cannon_CE/Swing/Barrel  [decor] (3.0, 1.3, -2.2) 1.4×3.3 м, h 0.4..3.4
+ 14 Cannons/Cannon_CE/Swing/Cheek_L  [decor] (2.2, 0.8, -2.5) 0.4×1.8 м, h 0.1..1.4
+ 15 Cannons/Cannon_CE/Swing/Cheek_R  [decor] (3.7, 0.8, -2.3) 0.4×1.8 м, h 0.1..1.4
+ 16 Cannons/Cannon_CE/Swing/Pad  [velocity] (3.0, 0.0, -2.5)
+ 17 Cannons/Cannon_CW/Swing  [animator] (-3.0, 0.0, -2.5)
+ 18 Cannons/Cannon_CW/Swing/AimPole/Bob  [decor] (-0.8, 1.3, 23.1) 0.5×0.5 м, h 1.0..1.5
+ 19 Cannons/Cannon_CW/Swing/AimPole/Pole  [decor] (-0.8, -0.2, 23.1) 0.2×0.2 м, h -1.5..1.1
+ 20 Cannons/Cannon_CW/Swing/Badge  [decor] (-3.0, 2.0, -2.8) 0.5×0.5 м, h 1.8..2.2
+ 21 Cannons/Cannon_CW/Swing/Barrel  [decor] (-3.0, 1.3, -2.2) 1.4×3.3 м, h 0.4..3.4
+ 22 Cannons/Cannon_CW/Swing/Cheek_L  [decor] (-3.7, 0.8, -2.3) 0.4×1.8 м, h 0.1..1.4
+ 23 Cannons/Cannon_CW/Swing/Cheek_R  [decor] (-2.2, 0.8, -2.5) 0.4×1.8 м, h 0.1..1.4
+ 24 Cannons/Cannon_CW/Swing/Pad  [velocity] (-3.0, 0.0, -2.5)
+ 25 Cannons/Cannon_E/Swing  [animator] (9.0, 0.0, -2.5)
+ 26 Cannons/Cannon_E/Swing/AimPole/Bob  [decor] (5.7, 1.3, 12.9) 0.6×0.6 м, h 1.0..1.5
+ 27 Cannons/Cannon_E/Swing/AimPole/Pole  [decor] (5.7, -0.2, 12.9) 0.2×0.2 м, h -1.5..1.1
+ 28 Cannons/Cannon_E/Swing/Badge  [decor] (9.1, 2.0, -2.8) 0.5×0.5 м, h 1.8..2.2
+ 29 Cannons/Cannon_E/Swing/Barrel  [decor] (8.9, 1.3, -2.2) 1.6×3.3 м, h 0.4..3.4
+ 30 Cannons/Cannon_E/Swing/Cheek_L  [decor] (8.2, 0.8, -2.6) 0.6×1.8 м, h 0.1..1.4
+ 31 Cannons/Cannon_E/Swing/Cheek_R  [decor] (9.7, 0.8, -2.2) 0.6×1.8 м, h 0.1..1.4
+ 32 Cannons/Cannon_E/Swing/Pad  [velocity] (9.0, 0.0, -2.5)
+ 33 Cannons/Cannon_W/Swing  [animator] (-9.0, 0.0, -2.5)
+ 34 Cannons/Cannon_W/Swing/AimPole/Bob  [decor] (-5.7, 1.3, 12.9) 0.6×0.6 м, h 1.0..1.5
+ 35 Cannons/Cannon_W/Swing/AimPole/Pole  [decor] (-5.7, -0.2, 12.9) 0.2×0.2 м, h -1.5..1.1
+ 36 Cannons/Cannon_W/Swing/Badge  [decor] (-9.1, 2.0, -2.8) 0.5×0.5 м, h 1.8..2.2
+ 37 Cannons/Cannon_W/Swing/Barrel  [decor] (-8.9, 1.3, -2.2) 1.6×3.3 м, h 0.4..3.4
+ 38 Cannons/Cannon_W/Swing/Cheek_L  [decor] (-9.7, 0.8, -2.2) 0.6×1.8 м, h 0.1..1.4
+ 39 Cannons/Cannon_W/Swing/Cheek_R  [decor] (-8.2, 0.8, -2.6) 0.6×1.8 м, h 0.1..1.4
+ 40 Cannons/Cannon_W/Swing/Pad  [velocity] (-9.0, 0.0, -2.5)
+ 41 Decor/Ball_Cannon_CE_0  [decor] (5.0, 0.2, -3.9) 0.4×0.4 м, h 0.0..0.4
+ 42 Decor/Ball_Cannon_CE_1  [decor] (5.4, 0.2, -3.7) 0.4×0.4 м, h 0.0..0.4
+ 43 Decor/Ball_Cannon_CE_2  [decor] (5.9, 0.2, -3.9) 0.4×0.4 м, h 0.0..0.4
+ 44 Decor/Ball_Cannon_CW_0  [decor] (-1.0, 0.2, -3.9) 0.4×0.4 м, h 0.0..0.4
+ 45 Decor/Ball_Cannon_CW_1  [decor] (-0.6, 0.2, -3.7) 0.4×0.4 м, h 0.0..0.4
+ 46 Decor/Ball_Cannon_CW_2  [decor] (-0.1, 0.2, -3.9) 0.4×0.4 м, h 0.0..0.4
+ 47 Decor/Ball_Cannon_E_0  [decor] (11.0, 0.2, -3.9) 0.4×0.4 м, h 0.0..0.4
+ 48 Decor/Ball_Cannon_E_1  [decor] (11.4, 0.2, -3.7) 0.4×0.4 м, h 0.0..0.4
+ 49 Decor/Ball_Cannon_E_2  [decor] (11.9, 0.2, -3.9) 0.4×0.4 м, h 0.0..0.4
+ 50 Decor/Ball_Cannon_W_0  [decor] (-7.0, 0.2, -3.9) 0.4×0.4 м, h 0.0..0.4
+ 51 Decor/Ball_Cannon_W_1  [decor] (-6.6, 0.2, -3.7) 0.4×0.4 м, h 0.0..0.4
+ 52 Decor/Ball_Cannon_W_2  [decor] (-6.1, 0.2, -3.9) 0.4×0.4 м, h 0.0..0.4
+   Decor/Fence/Back* ×10  [low] x -14..14, z -12..-12
+   Decor/Fence/Front* ×10  [low] x -14..14, z -0..-0
+ 53 Decor/Fence/Side_E_0  [low] (14.8, 0.0, -10.5) 0.1×3.1 м, h 0.0..1.2
+ 54 Decor/Fence/Side_E_1  [low] (14.8, 0.0, -7.5) 0.1×3.1 м, h 0.0..1.2
+ 55 Decor/Fence/Side_E_2  [low] (14.8, 0.0, -4.5) 0.1×3.1 м, h 0.0..1.2
+ 56 Decor/Fence/Side_E_3  [low] (14.8, 0.0, -1.5) 0.1×3.1 м, h 0.0..1.2
+ 57 Decor/Fence/Side_W_0  [low] (-14.8, 0.0, -10.5) 0.1×3.1 м, h 0.0..1.2
+ 58 Decor/Fence/Side_W_1  [low] (-14.8, 0.0, -7.5) 0.1×3.1 м, h 0.0..1.2
+ 59 Decor/Fence/Side_W_2  [low] (-14.8, 0.0, -4.5) 0.1×3.1 м, h 0.0..1.2
+ 60 Decor/Fence/Side_W_3  [low] (-14.8, 0.0, -1.5) 0.1×3.1 м, h 0.0..1.2
+ 61 Decor/FloatingBarrel_0  [decor, animator] (-14.0, -1.2, 7.0) 1.2×1.3 м, h -1.7..-0.8
+ 62 Decor/FloatingBarrel_1  [decor, animator] (13.0, -1.2, 16.0) 1.3×1.2 м, h -1.7..-0.8
+ 63 Decor/FloatingBarrel_2  [decor, animator] (-11.0, -1.2, 28.0) 1.3×1.3 м, h -1.7..-0.8
+ 64 Decor/FloatingBarrel_3  [decor, animator] (16.0, -1.2, 30.0) 1.3×1.2 м, h -1.7..-0.8
+ 65 Decor/FloatingBarrel_4  [decor, animator] (-20.0, -1.2, 17.0) 1.3×1.2 м, h -1.7..-0.8
+ 66 Decor/Lamppost_0  [wall] (-14.2, 0.0, -0.8) 1.3×0.8 м, h -0.0..5.0
+ 67 Decor/Lamppost_1  [wall] (14.2, 0.0, -0.8) 1.5×0.9 м, h 0.0..5.0
+ 68 Decor/Lamppost_2  [wall] (-14.2, 0.0, -11.2) 1.3×0.6 м, h -0.0..5.0
+ 69 Decor/Lamppost_3  [wall] (14.2, 0.0, -11.2) 1.4×1.1 м, h 0.0..5.0
+ 70 Decor/Mascot_Poster  [decor] (0.0, 0.0, -11.3) 3.0×1.2 м, h 0.0..2.8
+ 71 Decor/SunkenCart  [decor] (-6.0, -1.4, 33.0) 2.6×2.7 м, h -2.8..-1.1
+ 72 Midground/Booth_0  [wall] (-12.5, 0.0, -9.8) 3.3×3.8 м, h 0.0..2.4
+ 73 Midground/Booth_1  [wall] (12.5, 0.0, -9.8) 3.3×3.8 м, h 0.0..2.4
+ 74 Midground/PowderBarrel_0_0  [low] (-6.2, 0.0, -2.6) 0.9×0.9 м, h 0.0..1.0
+ 75 Midground/PowderBarrel_0_1  [low] (-6.4, 0.0, -3.2) 0.8×0.8 м, h 0.0..1.0
+ 76 Midground/PowderBarrel_1_0  [low] (-0.1, 0.0, -2.6) 0.8×0.8 м, h 0.0..1.0
+ 77 Midground/PowderBarrel_1_1  [low] (0.4, 0.0, -3.2) 0.9×0.9 м, h 0.0..1.0
+ 78 Midground/PowderBarrel_2_0  [low] (6.6, 0.0, -2.6) 0.9×0.9 м, h 0.0..1.0
+ 79 Midground/PowderBarrel_2_1  [low] (6.3, 0.0, -3.2) 0.9×0.9 м, h 0.0..1.0
+ 80 Midground/PowderCrate_0  [low] (-6.0, 0.3, -1.4) 1.6×1.0 м, h 0.0..0.6
+ 81 Midground/PowderCrate_1  [low] (0.0, 0.3, -1.4) 1.6×1.0 м, h 0.0..0.6
+ 82 Midground/PowderCrate_2  [low] (6.0, 0.3, -1.4) 1.7×1.2 м, h 0.0..0.6
+ 83 Player Spawnpoints/Respawn_0  [respawn] (-8.0, 1.0, -10.0)
+ 84 Player Spawnpoints/Respawn_1  [respawn] (0.0, 1.0, -10.0)
+ 85 Player Spawnpoints/Respawn_2  [respawn] (8.0, 1.0, -10.0)
+ 86 Player Spawnpoints/Spawn_Line  [spawn] (0.0, 1.0, -7.0)
+ 87 Targets/Round_1/Raft_Far/Catch  [trigger] (0.0, -0.6, 23.0)
+ 88 Targets/Round_1/Raft_Far/Paint_0  [decor] (0.0, -0.6, 23.0) 4.5×4.5 м, h -0.6..-0.6
+ 89 Targets/Round_1/Raft_Far/Paint_1  [decor] (0.0, -0.6, 23.0) 2.8×2.8 м, h -0.6..-0.6
+ 90 Targets/Round_1/Raft_Far/Paint_2  [decor] (0.0, -0.6, 23.0) 1.4×1.4 м, h -0.6..-0.6
+ 91 Targets/Round_1/Raft_Far/Score_0  [trigger] (0.0, -0.6, 23.0)
+ 92 Targets/Round_1/Raft_Far/Score_1  [trigger] (0.0, -0.6, 23.0)
+ 93 Targets/Round_1/Raft_Far/Score_2  [trigger] (0.0, -0.6, 23.0)
+ 94 Targets/Round_1/Raft_NearE/Catch  [trigger] (4.8, -0.6, 12.7)
+ 95 Targets/Round_1/Raft_NearE/Paint_0  [decor] (4.8, -0.6, 12.7) 5.3×5.3 м, h -0.6..-0.6
+ 96 Targets/Round_1/Raft_NearE/Paint_1  [decor] (4.8, -0.6, 12.7) 3.4×3.4 м, h -0.6..-0.6
+ 97 Targets/Round_1/Raft_NearE/Paint_2  [decor] (4.8, -0.6, 12.7) 1.6×1.6 м, h -0.6..-0.6
+ 98 Targets/Round_1/Raft_NearE/Score_0  [trigger] (4.8, -0.6, 12.7)
+ 99 Targets/Round_1/Raft_NearE/Score_1  [trigger] (4.8, -0.6, 12.7)
+100 Targets/Round_1/Raft_NearE/Score_2  [trigger] (4.8, -0.6, 12.7)
+101 Targets/Round_1/Raft_NearW/Catch  [trigger] (-4.8, -0.6, 12.7)
+102 Targets/Round_1/Raft_NearW/Paint_0  [decor] (-4.8, -0.6, 12.7) 5.3×5.3 м, h -0.6..-0.6
+103 Targets/Round_1/Raft_NearW/Paint_1  [decor] (-4.8, -0.6, 12.7) 3.4×3.4 м, h -0.6..-0.6
+104 Targets/Round_1/Raft_NearW/Paint_2  [decor] (-4.8, -0.6, 12.7) 1.6×1.6 м, h -0.6..-0.6
+105 Targets/Round_1/Raft_NearW/Score_0  [trigger] (-4.8, -0.6, 12.7)
+106 Targets/Round_1/Raft_NearW/Score_1  [trigger] (-4.8, -0.6, 12.7)
+107 Targets/Round_1/Raft_NearW/Score_2  [trigger] (-4.8, -0.6, 12.7)
+108 World/KillVolume  [kill] (0.0, -1.9, 18.0)
+109 World/Lake  [water] (0.0, -1.0, 18.0)
+110 World/LakeBed  [decor] (0.0, -3.1, 18.0) 90.0×70.0 м, h -3.6..-2.6
+```
+
+Цвета: серый — пол; оранжевый — стены (выше прыжка); жёлтый — низкие препятствия (перепрыгнуть); зелёный — декор без коллизии; ярче = выше. Синий — вода; красная штриховка — триггер с Kill/Damage; оранжевая рамка — триггер скорости/гравитации; жёлтая пунктирная — прочие триггеры; зелёные точки — стартовые спавны, голубые квадраты — респаун; золотые — спавнеры/предметы; розовые круги — Mover/Simple Animator; розовый пунктир — пустая клетка. Голубые линии и точки — сетка ботов (AI Navigation Node; точка ближе к концу линии — направление связи; белые узлы — выше пола, на крышах); золотые кольца — точки, из которых спавнер выбирает место (OnTargets).
+Разрезы (elevation_north/south.png): взгляд от края пола через карту, ближние объекты ярче, розовая рамка — движется; белая — пол, белые засечки — края пола, зелёная — высота прыжка, голубая — граница «мешает идти» (1.5 м).

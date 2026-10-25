@@ -159,7 +159,21 @@ def creak():
     return place(out, noise_burst(0.3, 0.01, 2000, 200, rng, amp=0.9), 0.9)
 
 
+def cannon_boom():
+    """Выстрел пушки 1 с: низкий удар (синус, скользящий 110→45 Гц) + хлопок шума с закрывающимся фильтром."""
+    import random
+    rng = random.Random("cannon_boom")
+    n = int(RATE * 1.0)
+    thump, phase = [], 0.0
+    for i in range(n):
+        t = i / RATE
+        phase += (45 + 65 * math.exp(-t * 6)) / RATE
+        thump.append(math.exp(-t * 4.5) * min(1.0, t / 0.003) * math.sin(2 * math.pi * phase))
+    return add(thump, noise_burst(0.7, 0.004, 6000, 150, rng, amp=1.4))
+
+
 SOUNDS = {
+    "cannon_boom": cannon_boom,
     "ticket_pickup": ticket_pickup,
     "sweep": sweep,
     "finish": finish,

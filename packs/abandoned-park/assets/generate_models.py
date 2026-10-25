@@ -579,7 +579,27 @@ def crown_zone():
     return m
 
 
+def cannon_barrel():
+    """Ствол циркового ядромёта 3.2 м вдоль +Z: казённик-шар, ствол сужается от r 0.5 к 0.42 тремя цилиндрами,
+    два обруча, раструб у дула. Pivot — ось цапф (z 0.6 от казённой части), наклон задаёт сцена поворотом по X."""
+    m = Mesh()
+    m.group = "breech"
+    m.add_sphere((0, 0, -0.6), 0.5, segments=12, rings=6)
+    m.group = "barrel"
+    for z0, z1, r in ((-0.6, 0.5, 0.5), (0.5, 1.6, 0.46), (1.6, 2.6, 0.42)):
+        m.add_cylinder((0, 0, (z0 + z1) / 2), r, z1 - z0, segments=14, axis="z")
+    m.group = "hoops"
+    for z in (0.5, 1.6):
+        m.add_cylinder((0, 0, z), 0.53, 0.12, segments=14, axis="z")
+    m.group = "muzzle"
+    m.add_cylinder((0, 0, 2.5), 0.56, 0.2, segments=14, axis="z")
+    m.group = "trunnions"
+    m.add_cylinder((0, 0, 0), 0.14, 1.3, segments=8, rot=(0, 0, 90))
+    return m
+
+
 MODELS = {
+    "cannon_barrel": cannon_barrel,
     "throne": throne,
     "throne_dais": throne_dais,
     "crown": crown,
