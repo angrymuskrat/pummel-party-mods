@@ -23,7 +23,9 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 # midAirMovementAcceleration (он же airDeceleration, SimpleModPlayer.ApplyModSettings), поэтому дальность выстрела
 # и подруливание задаются им. 4 м/с²: вбок долетают на ±2.5…3 м, вперёд-назад полёт почти не управляется
 GRAVITY, AIR_ACCEL, RUN, JUMP = 15.0, 4.0, 6.0, 6.0   # прыжок 6²/(2·15) = 1.2 м
-ROUND, ROUNDS = 45.0, 3
+# один раунд: здесь не выбывают и не ждут, поэтому пауза между раундами только рвала бы темп (решение 2026-10-25).
+# Эскалация — три этапа по STAGE_TIME внутри раунда, их переключает Director цепочкой Wait → Set Active
+ROUND, ROUNDS, STAGE_TIME = 60.0, 1, 20.0
 
 DECK_FRONT, DECK_BACK, DECK_HALF = 0.0, -12.0, 15.0   # пирс: верх y 0, передний край над кислотой
 WATER_Y, RAFT_TOP = -1.0, -0.6
@@ -42,15 +44,20 @@ CANNONS = [
 ]
 BOT_CANNON = "Cannon_W"
 # мишени: полуразмер внешнего квадрата, среднего, яблочка и прибавки очков. Зоны вложены, поэтому очки складываются:
-# ближняя 1 / 3 / 5, дальняя 2 / 5 / 8. Квадраты, а не круги: у триггера нет цилиндра, а у капсулы купола засчитали бы пролёт
+# ближняя 1 / 3 / 5, дальняя 2 / 4 / 6. Квадраты, а не круги: у триггера нет цилиндра, а у капсулы купола засчитали бы пролёт.
+# Дальняя не 2 / 5 / 8: окно у неё лишь на четверть уже, полёт дольше на 0.4 с, а пушек к ней две — при 8 за яблочко
+# ближние плоты никому не нужны (разбор 2026-10-25)
 NEAR = {"half": (2.8, 1.7, 0.8), "add": (1, 2, 2)}
-FAR = {"half": (2.4, 1.4, 0.7), "add": (2, 3, 3)}
+FAR = {"half": (2.4, 1.4, 0.7), "add": (2, 2, 2)}
 SLAB = (0.3, 1.5)     # высота зон очков над палубой плота; ниже, от −0.1 до 0.3, — зона возврата на пирс
-# раунды: смещение по X туда-обратно (Move Along Line, 0 — стоит) и период. Ближние плывут вместе, как утки в тире,
-# дальняя — навстречу (сдвиг фазы на полцикла)
-ROUND_DRIFT = [{"near": (0.0, 0.0), "far": (0.0, 0.0)},
-               {"near": (2.5, 6.0), "far": (5.0, 7.0)},
-               {"near": (4.0, 4.5), "far": (8.0, 5.5)}]
+# этапы: смещение по X туда-обратно (Move Along Line, 0 — стоит), период и масштаб квадратов. Ближние плывут вместе,
+# как утки в тире, дальняя — навстречу (сдвиг фазы на полцикла). Сложность растёт от размера: дрейф окна попадания
+# не сужает (ствол всё равно проходит через плот), он только сдвигает момент. Периоды плотов не кратны периодам
+# пушек и дают биения короче этапа — иначе фаза «ствол — плот» застывает и лучшая пушка зашита сборкой
+# (cannonball/plan/windows.txt, считает windows.py)
+STAGES = [{"near": (0.0, 0.0), "far": (0.0, 0.0), "size": 1.0},
+          {"near": (2.5, 6.5), "far": (5.0, 8.0), "size": 0.75},
+          {"near": (3.5, 3.3), "far": (7.0, 8.3), "size": 0.65}]
 NEAR_ANGLE = 15.4     # ближние мишени — на дуге боковых пушек под этим углом от их оси
 PUNCH_PUSH, PUNCH_LIFT = 6.0, 3.0
 RESPAWN = 2.0
@@ -82,6 +89,16 @@ def flight(shot, steer=0.0, dt=1 / 60):
 def reach(kind):
     """Дальность от оси пушки до точки падения без подруливания."""
     return MUZZLE[2] + flight(SHOTS[kind])[1]
+
+
+def raft_points():
+    """Центры плотов (x, z): ближние — на дуге боковых пушек под NEAR_ANGLE к центру, дальний — на пересечении дуг центральных."""
+    west, east, cw = CANNONS[0], CANNONS[3], CANNONS[1]
+    a = math.radians(NEAR_ANGLE)
+    near_l = (west["x"] + reach(west["kind"]) * math.sin(a), PIVOT_Z + reach(west["kind"]) * math.cos(a))
+    near_r = (east["x"] - reach(east["kind"]) * math.sin(a), near_l[1])
+    far = (0.0, PIVOT_Z + math.sqrt(reach(cw["kind"]) ** 2 - cw["x"] ** 2))
+    return near_l, near_r, far
 
 
 def build(name: str, workshop: str = WORKSHOP) -> str:
@@ -138,9 +155,9 @@ def build(name: str, workshop: str = WORKSHOP) -> str:
     # верх зоны смерти на −1.4, под плотами (низ плота −1.2): промахнувшийся уходит в кислоту и взрывается
     world.add(obj("KillVolume", pos=(0, -1.9, 18)).trigger(
         TriggerShape.BOX, size=(90, 1, 70), on_enter=[act_spawn_effect(Effect.EXPLOSION, Targets.SOURCE), act_kill(Targets.SOURCE)]))
-    # дно озера под зоной смерти (верх −2.6). В паузе между раундами игра не убивает (KillPlayer пропускает m_isBetweenRounds),
-    # а физика идёт: летевший в конце раунда падал сквозь кислоту в пустоту. Теперь ложится на дно и ждёт переноса на старт
-    # (1 с после конца раунда). Слой Default, не WorldGround: для plan_view это не пол
+    # дно озера под зоной смерти (верх −2.6). После конца раунда игра не убивает (KillPlayer пропускает m_isBetweenRounds),
+    # а физика идёт: летевший в последнюю секунду падал сквозь кислоту в пустоту (плейтест трёхраундовой версии).
+    # Раунд теперь один, но та же пауза есть и перед итогами — дно оставлено. Слой Default, не WorldGround: для plan_view это не пол
     world.add(obj("LakeBed", pos=(0, -3.1, 18), scale=(90, 1, 70))
               .prop(PROP_CUBE, collision=Collision.BOX, shadow=Shadow.OFF, materials=[dirt_mat.guid], tint=(0.2, 0.25, 0.15, 1)))
 
@@ -185,31 +202,35 @@ def build(name: str, workshop: str = WORKSHOP) -> str:
     bot = next(c for c in CANNONS if c["name"] == BOT_CANNON)
     mod.add(obj("AI Navigation")).add(obj("AIGoal_Cannon", pos=(bot["x"], 0.35, PIVOT_Z)).ai_node(is_goal=True))
 
-    # --- мишени. Точки: ближние — на дуге боковых пушек под NEAR_ANGLE к центру, дальняя — на пересечении дуг центральных
-    west, east = CANNONS[0], CANNONS[3]
-    a = math.radians(NEAR_ANGLE)
-    near_l = (west["x"] + west["reach"] * math.sin(a), PIVOT_Z + west["reach"] * math.cos(a))
-    near_r = (east["x"] - east["reach"] * math.sin(a), near_l[1])
-    far_r = CANNONS[1]["reach"]
-    far = (0.0, PIVOT_Z + math.sqrt(far_r ** 2 - CANNONS[1]["x"] ** 2))
+    # --- мишени
+    near_l, near_r, far = raft_points()
     tints = ((0.95, 0.92, 0.85, 1), (0.8, 0.15, 0.1, 1), (1.0, 0.82, 0.1, 1))
 
-    def raft(parent, name, xz, spec, side, drift):
-        """Плот-мишень: корпус с полом WorldGround, три крашеных квадрата, вложенные зоны очков и зона возврата под ними."""
+    def raft(parent, name, xz, spec, side, drift, size):
+        """Плот-мишень: корпус с полом WorldGround, три крашеных квадрата, флажок над яблочком, вложенные зоны очков
+        и зона возврата под ними. size — масштаб квадратов этапа."""
         amp, period = drift
+        halves = [h * size for h in spec["half"]]
         root = parent.add(obj(name, pos=(xz[0] - amp, RAFT_TOP, xz[1])))
         if amp:
             root.simple_animator(anim_move_along_line(1.0 / period, (2 * amp, 0, 0)), local_position=False,
                                  time_offset=period / 2 if spec is FAR else 0.0)
-        h0 = spec["half"][0]
+        h0 = halves[0]
         root.add(obj("Body", pos=(0, -0.3, 0), scale=(2 * h0, 0.6, 2 * h0), layer=LAYER_WORLD_GROUND)
                  .prop(PROP_CUBE, collision=Collision.BOX, materials=[metal_mat.guid]))
-        for k, (h, tint) in enumerate(zip(spec["half"], tints)):
+        # флажок над яблочком: с пирса палуба видна под 8–13°, квадраты сжаты в полоски; без коллизии и вне зон очков
+        # не мешает — зоны триггеры, а не стены. Белое древко с жёлтым флагом не спутать с шестами прицела (цвет пушки + шар)
+        flag = root.add(obj("Flag"))
+        flag.add(obj("Staff", pos=(0, 1.1, 0), scale=(0.08, 2.2, 0.08))
+                 .prop(PROP_CUBE, collision=Collision.NONE, shadow=Shadow.OFF, tint=(0.95, 0.95, 0.9, 1)))
+        flag.add(obj("Cloth", pos=(0.33, 1.95, 0), scale=(0.6, 0.4, 0.03))
+                 .prop(PROP_CUBE, collision=Collision.NONE, shadow=Shadow.OFF, tint=tints[2]))
+        for k, (h, tint) in enumerate(zip(halves, tints)):
             inset = 0.15 if k == 0 else 0.0
             root.add(obj(f"Paint_{k}", pos=(0, 0.01 + 0.015 * k, 0), scale=(2 * (h - inset), 0.02, 2 * (h - inset)))
                      .prop(PROP_CUBE, collision=Collision.NONE, shadow=Shadow.OFF, tint=tint))
         slab_h = SLAB[1] - SLAB[0]
-        for k, (h, add) in enumerate(zip(spec["half"], spec["add"])):
+        for k, (h, add) in enumerate(zip(halves, spec["add"])):
             acts = [act_change_score(add, Op.ADD, Targets.SOURCE)]
             if k == 0:
                 acts.append(act_play_sound(ding_wav.guid, 1.0, Targets.RECEIVER))
@@ -226,11 +247,11 @@ def build(name: str, workshop: str = WORKSHOP) -> str:
 
     targets = mod.add(obj("Targets"))
     sets = []
-    for r, drift in enumerate(ROUND_DRIFT):
-        s = targets.add(obj(f"Round_{r + 1}", active=(r == 0)))
-        raft(s, "Raft_NearW", near_l, NEAR, "W", drift["near"])
-        raft(s, "Raft_NearE", near_r, NEAR, "E", drift["near"])
-        raft(s, "Raft_Far", far, FAR, "C", drift["far"])
+    for r, st in enumerate(STAGES):
+        s = targets.add(obj(f"Stage_{r + 1}", active=(r == 0)))
+        raft(s, "Raft_NearW", near_l, NEAR, "W", st["near"], st["size"])
+        raft(s, "Raft_NearE", near_r, NEAR, "E", st["near"], st["size"])
+        raft(s, "Raft_Far", far, FAR, "C", st["far"], st["size"])
         sets.append(s)
 
     # --- средний план пирса: ящики с порохом и бочки между пушками у перил (низкие, у края), кассы у задней стены.
@@ -310,26 +331,19 @@ def build(name: str, workshop: str = WORKSHOP) -> str:
     for i, x in enumerate((-8.0, 0.0, 8.0)):
         spawns.add(obj(f"Respawn_{i}", pos=(x, 1, -10.0)).player_spawn(SpawnShape.POINT, SpawnUsage.RESPAWN))
 
-    # --- раунды без счётчика: три этапа, включён только первый. Round Start подписывается в OnEnable и отписывается
-    # в OnDisable (RoundStartTrigger), поэтому выключенный этап событие не получает. Этап меняет набор плотов, включает
-    # следующий этап и выключает себя последним действием. Включённый во время события этап его не получает:
-    # подписчики мультикаст-делегата берутся на момент вызова
-    director = mod.add(obj("Director"))
-    msgs = ["Раунд 1 из 3: плоты стоят. Прыгай в пушку, когда шест под плотом, в полёте подруливай! / "
-            "Round 1 of 3: rafts hold still. Jump in when the pole is under a raft, steer mid-air!",
-            "Раунд 2 из 3: плоты плывут — стреляй на упреждение! / Round 2 of 3: rafts drift — lead your shot!",
-            "Финал: течение быстрее! / Final round: the current speeds up!"]
-    stages = [director.add(obj(f"Stage_{r + 1}", active=(r == 0))) for r in range(ROUNDS)]
-    for r, st in enumerate(stages):
-        acts = []
-        if r:
-            acts += [act_set_active(ActiveState.DISABLED, [sets[r - 1].transform_guid]),
-                     act_set_active(ActiveState.ENABLED, [sets[r].transform_guid])]
-        acts += [act_show_message(msgs[r], 5.0), act_wait(1.0)]
-        if r + 1 < ROUNDS:
-            acts.append(act_set_active(ActiveState.ENABLED, [stages[r + 1].transform_guid]))
-        acts.append(act_set_active(ActiveState.DISABLED, [st.transform_guid]))
-        st.logic(trig_round_start(*acts))
+    # --- этапы внутри одного раунда: цепочка Wait → Set Active, как в Death Carousel. Старый набор плотов выключается
+    # до включения нового: ближние плоты соседних этапов стоят в одном месте, и падающий вошёл бы в зоны обоих
+    msgs = ["Прыгай в пушку, когда шест под плотом! В полёте рули влево-вправо. / "
+            "Jump in when the pole is under a raft! Steer left-right mid-air.",
+            "Плоты поплыли — стреляй на упреждение! / Rafts drift — lead your shot!",
+            "Финал: плоты меньше и быстрее! / Final: smaller, faster rafts!"]
+    acts = [act_show_message(msgs[0], 5.0)]
+    for r in range(1, len(STAGES)):
+        acts += [act_wait(STAGE_TIME),
+                 act_set_active(ActiveState.DISABLED, [sets[r - 1].transform_guid]),
+                 act_set_active(ActiveState.ENABLED, [sets[r].transform_guid]),
+                 act_show_message(msgs[r], 4.0)]
+    mod.add(obj("Director")).logic(trig_round_start(*acts))
 
     table = []
     for c in CANNONS:

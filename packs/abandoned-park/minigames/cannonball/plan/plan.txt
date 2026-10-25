@@ -4,12 +4,12 @@
 ## Метрики
 - Пол: 30.0 × 37.4 м по габаритам, площадь пола 446 м², высота пола 0.15; диагональ 48 м ≈ 8.0 с бега
 - Движение (ModSettings): бег 6.0 м/с; прыжок 1.20 м вверх, ≈4.8 м в длину; ступенька 0.20 м
-- Раунд: 45.0 с × 3; тип игрока ThirdPerson
+- Раунд: 60.0 с × 1; тип игрока ThirdPerson
 - Занятость пола: стены 1.7%, низкие (перепрыгиваемые) 8.2%, опасность 0.0%, вода 0.0%, ускорители 9.1%, свободно 81.0%
 - Связность: из стартовых спавнов пешком достижимо 77% проходимой площади (без прыжков и jump pad)
 - Самая большая пустая площадка: круг радиусом 4.1 м с центром (-5.6, -7.6) — 0.7 с бега от края до центра
 - Самый длинный прямой пробег без помех (игрок радиусом 0.4 м): 29 м вдоль X (z=-8.1), 9 м вдоль Z (x=-5.1) — 4.8 с бега
-- Плотность на 100 м² пола: препятствия 4.7, декор 12.1, точки интереса 4.3 (всего: 21 / 54 / 19); ограждение по краю: 22; объектов задника вне пола: 60
+- Плотность на 100 м² пола: препятствия 4.7, декор 13.5, точки интереса 4.3 (всего: 21 / 60 / 19); ограждение по краю: 22; объектов задника вне пола: 60
 - Спавн → 3 ближайшие цели на полу (спавнеры и предметы; если их нет — точки интереса), путь пешком: от 6.8 до 8.2 м, разброс ×1.21 — честно (порог ×1.5); по спавнам: (-8, -7) 8.2, (-6, -7) 7.4, (-3, -7) 6.8, (-1, -7) 7.0, (1, -7) 7.1, (3, -7) 6.8, (6, -7) 7.3, (8, -7) 8.2
 - Ориентиры (самые высокие): Hill_11 17.1 м в (58, -26) вне пола; Tent_0 15.6 м в (-22, 45) вне пола; Rotor 13.9 м в (0, 52) вне пола; Hill_9 13.7 м в (-5, -56) вне пола; Tent_1 13.1 м в (21, 46) вне пола; Hill_8 13.1 м в (-32, -53) вне пола
 - Движется (10): FloatingBarrel ×5 — Move Along Line 0.3/с; Swing — Custom Animation 0.222222/с; Swing — Custom Animation 0.181818/с; Swing — Custom Animation 0.2/с; Swing — Custom Animation 0.25/с; Rotor — вращение 10°/с
@@ -121,30 +121,36 @@ oooooooo
  84 Player Spawnpoints/Respawn_1  [respawn] (0.0, 1.0, -10.0)
  85 Player Spawnpoints/Respawn_2  [respawn] (8.0, 1.0, -10.0)
  86 Player Spawnpoints/Spawn_Line  [spawn] (0.0, 1.0, -7.0)
- 87 Targets/Round_1/Raft_Far/Catch  [trigger] (0.0, -0.6, 23.0)
- 88 Targets/Round_1/Raft_Far/Paint_0  [decor] (0.0, -0.6, 23.0) 4.5×4.5 м, h -0.6..-0.6
- 89 Targets/Round_1/Raft_Far/Paint_1  [decor] (0.0, -0.6, 23.0) 2.8×2.8 м, h -0.6..-0.6
- 90 Targets/Round_1/Raft_Far/Paint_2  [decor] (0.0, -0.6, 23.0) 1.4×1.4 м, h -0.6..-0.6
- 91 Targets/Round_1/Raft_Far/Score_0  [trigger] (0.0, -0.6, 23.0)
- 92 Targets/Round_1/Raft_Far/Score_1  [trigger] (0.0, -0.6, 23.0)
- 93 Targets/Round_1/Raft_Far/Score_2  [trigger] (0.0, -0.6, 23.0)
- 94 Targets/Round_1/Raft_NearE/Catch  [trigger] (4.8, -0.6, 12.7)
- 95 Targets/Round_1/Raft_NearE/Paint_0  [decor] (4.8, -0.6, 12.7) 5.3×5.3 м, h -0.6..-0.6
- 96 Targets/Round_1/Raft_NearE/Paint_1  [decor] (4.8, -0.6, 12.7) 3.4×3.4 м, h -0.6..-0.6
- 97 Targets/Round_1/Raft_NearE/Paint_2  [decor] (4.8, -0.6, 12.7) 1.6×1.6 м, h -0.6..-0.6
- 98 Targets/Round_1/Raft_NearE/Score_0  [trigger] (4.8, -0.6, 12.7)
- 99 Targets/Round_1/Raft_NearE/Score_1  [trigger] (4.8, -0.6, 12.7)
-100 Targets/Round_1/Raft_NearE/Score_2  [trigger] (4.8, -0.6, 12.7)
-101 Targets/Round_1/Raft_NearW/Catch  [trigger] (-4.8, -0.6, 12.7)
-102 Targets/Round_1/Raft_NearW/Paint_0  [decor] (-4.8, -0.6, 12.7) 5.3×5.3 м, h -0.6..-0.6
-103 Targets/Round_1/Raft_NearW/Paint_1  [decor] (-4.8, -0.6, 12.7) 3.4×3.4 м, h -0.6..-0.6
-104 Targets/Round_1/Raft_NearW/Paint_2  [decor] (-4.8, -0.6, 12.7) 1.6×1.6 м, h -0.6..-0.6
-105 Targets/Round_1/Raft_NearW/Score_0  [trigger] (-4.8, -0.6, 12.7)
-106 Targets/Round_1/Raft_NearW/Score_1  [trigger] (-4.8, -0.6, 12.7)
-107 Targets/Round_1/Raft_NearW/Score_2  [trigger] (-4.8, -0.6, 12.7)
-108 World/KillVolume  [kill] (0.0, -1.9, 18.0)
-109 World/Lake  [water] (0.0, -1.0, 18.0)
-110 World/LakeBed  [decor] (0.0, -3.1, 18.0) 90.0×70.0 м, h -3.6..-2.6
+ 87 Targets/Stage_1/Raft_Far/Catch  [trigger] (0.0, -0.6, 23.0)
+ 88 Targets/Stage_1/Raft_Far/Flag/Cloth  [decor] (0.3, 1.4, 23.0) 0.6×0.0 м, h 1.2..1.6
+ 89 Targets/Stage_1/Raft_Far/Flag/Staff  [decor] (0.0, 0.5, 23.0) 0.1×0.1 м, h -0.6..1.6
+ 90 Targets/Stage_1/Raft_Far/Paint_0  [decor] (0.0, -0.6, 23.0) 4.5×4.5 м, h -0.6..-0.6
+ 91 Targets/Stage_1/Raft_Far/Paint_1  [decor] (0.0, -0.6, 23.0) 2.8×2.8 м, h -0.6..-0.6
+ 92 Targets/Stage_1/Raft_Far/Paint_2  [decor] (0.0, -0.6, 23.0) 1.4×1.4 м, h -0.6..-0.6
+ 93 Targets/Stage_1/Raft_Far/Score_0  [trigger] (0.0, -0.6, 23.0)
+ 94 Targets/Stage_1/Raft_Far/Score_1  [trigger] (0.0, -0.6, 23.0)
+ 95 Targets/Stage_1/Raft_Far/Score_2  [trigger] (0.0, -0.6, 23.0)
+ 96 Targets/Stage_1/Raft_NearE/Catch  [trigger] (4.8, -0.6, 12.7)
+ 97 Targets/Stage_1/Raft_NearE/Flag/Cloth  [decor] (5.1, 1.4, 12.7) 0.6×0.0 м, h 1.2..1.6
+ 98 Targets/Stage_1/Raft_NearE/Flag/Staff  [decor] (4.8, 0.5, 12.7) 0.1×0.1 м, h -0.6..1.6
+ 99 Targets/Stage_1/Raft_NearE/Paint_0  [decor] (4.8, -0.6, 12.7) 5.3×5.3 м, h -0.6..-0.6
+100 Targets/Stage_1/Raft_NearE/Paint_1  [decor] (4.8, -0.6, 12.7) 3.4×3.4 м, h -0.6..-0.6
+101 Targets/Stage_1/Raft_NearE/Paint_2  [decor] (4.8, -0.6, 12.7) 1.6×1.6 м, h -0.6..-0.6
+102 Targets/Stage_1/Raft_NearE/Score_0  [trigger] (4.8, -0.6, 12.7)
+103 Targets/Stage_1/Raft_NearE/Score_1  [trigger] (4.8, -0.6, 12.7)
+104 Targets/Stage_1/Raft_NearE/Score_2  [trigger] (4.8, -0.6, 12.7)
+105 Targets/Stage_1/Raft_NearW/Catch  [trigger] (-4.8, -0.6, 12.7)
+106 Targets/Stage_1/Raft_NearW/Flag/Cloth  [decor] (-4.5, 1.4, 12.7) 0.6×0.0 м, h 1.2..1.6
+107 Targets/Stage_1/Raft_NearW/Flag/Staff  [decor] (-4.8, 0.5, 12.7) 0.1×0.1 м, h -0.6..1.6
+108 Targets/Stage_1/Raft_NearW/Paint_0  [decor] (-4.8, -0.6, 12.7) 5.3×5.3 м, h -0.6..-0.6
+109 Targets/Stage_1/Raft_NearW/Paint_1  [decor] (-4.8, -0.6, 12.7) 3.4×3.4 м, h -0.6..-0.6
+110 Targets/Stage_1/Raft_NearW/Paint_2  [decor] (-4.8, -0.6, 12.7) 1.6×1.6 м, h -0.6..-0.6
+111 Targets/Stage_1/Raft_NearW/Score_0  [trigger] (-4.8, -0.6, 12.7)
+112 Targets/Stage_1/Raft_NearW/Score_1  [trigger] (-4.8, -0.6, 12.7)
+113 Targets/Stage_1/Raft_NearW/Score_2  [trigger] (-4.8, -0.6, 12.7)
+114 World/KillVolume  [kill] (0.0, -1.9, 18.0)
+115 World/Lake  [water] (0.0, -1.0, 18.0)
+116 World/LakeBed  [decor] (0.0, -3.1, 18.0) 90.0×70.0 м, h -3.6..-2.6
 ```
 
 Цвета: серый — пол; оранжевый — стены (выше прыжка); жёлтый — низкие препятствия (перепрыгнуть); зелёный — декор без коллизии; ярче = выше. Синий — вода; красная штриховка — триггер с Kill/Damage; оранжевая рамка — триггер скорости/гравитации; жёлтая пунктирная — прочие триггеры; зелёные точки — стартовые спавны, голубые квадраты — респаун; золотые — спавнеры/предметы; розовые круги — Mover/Simple Animator; розовый пунктир — пустая клетка. Голубые линии и точки — сетка ботов (AI Navigation Node; точка ближе к концу линии — направление связи; белые узлы — выше пола, на крышах); золотые кольца — точки, из которых спавнер выбирает место (OnTargets).
