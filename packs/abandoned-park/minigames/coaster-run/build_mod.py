@@ -31,10 +31,17 @@ LANE_SEGMENTS = (
     ((8.0, 12.0, False), (13.8, 20.0, False), (23.0, 30.0, False), (31.6, 40.0, False)),
 )
 DITCH = (-8.0, 8.0, 8.0, 39.0)   # x0, x1, z0, z1 рва под S2
+# упал в ров — телепорт, как в остальных секциях (прожарка 2026-10-25): пешком назад по лестнице выходило 8–10 с,
+# дороже, чем падение с петли. До DITCH_SPLIT — на станцию, дальше — на левую балку у z 20 (сплошной кусок 18.4–28)
+DITCH_SPLIT = 24.0
 STAIR_X = (5.6, 8.0)  # лестница из рва на станцию вдоль правой стены, 9 ступеней по 0.44 м: z 20 → 8
 STAIR_Z0, STAIR_N = 20.0, 9
 BED = (40.0, 60.0, 5.2)    # полотно вагонеток: z0, z1, ширина
-CARTS = ((-1.75, 0.14, 0.0), (0.0, 0.11, 2.5), (1.75, 0.17, 1.2))   # x, циклов/с, сдвиг фазы с
+# полотно сдвинуто влево (x −3.9…1.3), чтобы правая балка S2 продолжалась обходом вагонеток: риск правой дорожки
+# (разрыв 3 м) окупается — по обходу вагонеток нет, но он шириной в балку, над кислотой и с разрывом 2.4 м
+BED_X = -1.3
+CARTS = ((-3.05, 0.14, 0.0), (-1.3, 0.11, 2.5), (0.45, 0.17, 1.2))   # x, циклов/с, сдвиг фазы с
+BYPASS = ((40.0, 47.6), (50.0, 60.0))   # куски обхода по z на x LANES[2]
 CART_RUN = 14.0       # ход вагонетки навстречу от z 57
 LIFT_TOP = (72.0, 9.0)     # подъём: от конца полотна (z 60, y 4) до площадки CP4
 CP4 = (-3.0, 3.0, 72.0, 78.0)
@@ -56,7 +63,7 @@ PODIUM_X = 42.5
 LOOP_CATCH = (-6.0, 16.0, 76.0, 97.0, 8.3)   # x0, x1, z0, z1, верх
 WARN_BLINK = 0.25     # перед исчезновением 4 смены цвета красный/жёлтый по 0.25 с — ровно секунда            # ложа финишировавших: x 42.5…46 со стенами 2.2 м
 PUNCH_PUSH, PUNCH_LIFT = 5.0, 3.0   # м/с от удара: сбить с балки можно, улететь с полотна — вряд ли
-ROUND = 90.0
+ROUND = 60.0          # чистый бег ≈ 23 с, с падениями 35–60; кто не добежал — по рубежам
 
 
 def ramp(name, p0, p1, width, thick, **kw):
@@ -200,9 +207,13 @@ def build(name: str, workshop: str = WORKSHOP) -> str:
     # --- S3 вагонетки: полотно над прудом, 3 вагонетки катаются навстречу (Move Along Line по локальной −Z).
     # Движущийся коллайдер игрока не толкает, поэтому у вагонетки только триггер: оглушить и отбросить от неё
     bz0, bz1, bw = BED
-    track.add(slab("CartBed", -bw / 2, bw / 2, bz0, bz1, TRACK_Y, layer=LAYER_WORLD_GROUND)
+    track.add(slab("CartBed", BED_X - bw / 2, BED_X + bw / 2, bz0, bz1, TRACK_Y, layer=LAYER_WORLD_GROUND)
               .prop(PROP_CUBE, collision=Collision.BOX, materials=[metal_mat.guid], tint=(0.7, 0.6, 0.5, 1)))
-    for x in (-1.75, 0.0, 1.75):   # рельсы под вагонетками — декор, без коллизии
+    # обход вагонеток — продолжение правой балки S2
+    for si, (z0, z1) in enumerate(BYPASS):
+        track.add(obj(f"Bypass_{si}", pos=(LANES[2], TRACK_Y - RAIL_TOP, (z0 + z1) / 2), scale=(1, 1, (z1 - z0) / 6.0),
+                      layer=LAYER_WORLD_GROUND).prop(rail_obj.guid, collision=Collision.BOX, materials=[metal_mat.guid]))
+    for x, _, _ in CARTS:   # рельсы под вагонетками — декор, без коллизии
         for k in range(3):
             track.add(obj("BedRail", pos=(x, TRACK_Y - RAIL_TOP + 0.08, bz0 + 3.4 + 6.6 * k), scale=(0.9, 1, 1.1))
                       .prop(rail_obj.guid, collision=Collision.NONE, materials=[metal_mat.guid]))
@@ -216,7 +227,8 @@ def build(name: str, workshop: str = WORKSHOP) -> str:
                                             act_play_sound(rumble_wav.guid, 0.8, Targets.RECEIVER)])
                          .simple_animator(anim_move_along_line(freq, (0, 0, -CART_RUN)), time_offset=phase))
         cart.add(obj("Body").prop(cart_obj.guid, collision=Collision.NONE, materials=[paint_mat.guid]))
-    gate("Gate_S3", (0, TRACK_Y + 1.5, bz0 + 1.0), (bw, 3.0, 1.0))
+    g0, g1 = BED_X - bw / 2, LANES[2] + 0.65   # рубеж на полотне и на обходе
+    gate("Gate_S3", ((g0 + g1) / 2, TRACK_Y + 1.5, bz0 + 1.0), (g1 - g0, 3.0, 1.0))
     cp3 = checkpoint("CP3", (0, TRACK_Y + 1.5, bz0 + 1.5), 0)
     nav_points += [("Nav_Bed_0", (0, TRACK_Y + 0.5, 42.0)), ("Nav_Bed_1", (0, TRACK_Y + 0.5, 50.0)),
                    ("Nav_Bed_2", (0, TRACK_Y + 0.5, 58.0))]
@@ -309,7 +321,13 @@ def build(name: str, workshop: str = WORKSHOP) -> str:
                   .prop(PROP_CUBE, collision=Collision.BOX, materials=[paint_mat.guid]))
     nav_points.append(("Nav_Goal", (FINISH_X + 1.2, ftop + 0.5, TRACK_Z)))
 
-    # --- падения: пруд под S3–S5, по триггеру на секцию (ров S2 — без триггера, оттуда выходят по лестнице)
+    # --- падения: ров S2 и пруд под S3–S5, по триггеру на секцию. Лестница во рву осталась: на неё может упасть
+    # сбитый с правой балки (верх ступеней выше зоны) — тогда выход прежний, пешком на станцию
+    x0, x1, z0, _ = DITCH
+    cp_station = checkpoint("CP_Station", (0, TRACK_Y + 1.5, 6.0), 0)
+    cp_s2 = checkpoint("CP_S2", (LANES[0], TRACK_Y + 1.5, 20.0), 0)
+    fall_zone("Fall_S2a", x0, x1, z0, DITCH_SPLIT, cp_station)
+    fall_zone("Fall_S2b", x0, x1, DITCH_SPLIT, DITCH[3], cp_s2)
     fall_zone("Fall_S3", -12.0, 12.0, 39.5, 61.0, cp3)
     # граница подъём/петля там же, где начинается ловушка петли: упавший с верха подъёма долетал до z > 73.5 → CP4
     fall_zone("Fall_Lift", -12.0, 12.0, 61.0, LOOP_CATCH[2], cp_lift)
@@ -330,7 +348,7 @@ def build(name: str, workshop: str = WORKSHOP) -> str:
     for z in (12.0, 22.0, 32.0):
         trestle(f"Trestle_S2_{z:.0f}", 0, z, TRACK_Y - 0.6, width=2.6)
     for z in (44.0, 52.0, 59.0):
-        trestle(f"Trestle_S3_{z:.0f}", 0, z, TRACK_Y - 0.5, width=1.8)
+        trestle(f"Trestle_S3_{z:.0f}", BED_X, z, TRACK_Y - 0.5, width=1.8)
     trestle("Trestle_Lift", 0, 66.0, 6.3)
     trestle("Trestle_CP4", 0, 75.0, ly - 0.5, width=1.5)
     trestle("Trestle_CP5", 16.5, TRACK_Z, ptop - 0.5, yaw=90, width=1.5)

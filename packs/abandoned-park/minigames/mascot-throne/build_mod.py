@@ -23,7 +23,9 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 HALF = 20.0           # игровой пол 40 × 40
 THRONE_R = 13.0       # внешние троны на кольце r 13: до центра 13 м (2.2 с бега), между собой 22.5 м (3.8 с)
 DAIS_Y = 0.15         # верх помоста (throne_dais.obj), ниже ступеньки 0.2 — заходят и боты
-ZONE_R = 2.4          # радиус зоны очков; кольцо crown_zone.obj — 2.25…2.5
+# радиус зоны очков. Было 2.4 (≈18 м² — помещались все, и драться в начале стоянки было незачем; прожарка 2026-10-25).
+# Кольцо crown_zone.obj — 2.25…2.5 под r 2.4, поэтому модель масштабируется на ZONE_R / 2.4
+ZONE_R = 2.0
 SEAT_OFF = 2.4        # трон стоит на краю помоста с внешней стороны, лицом к центру арены
 POND_RECT = (14.5, 18.0, -6.0, -1.0)   # x0, x1, z0, z1 кислотной лужи у трона «Пруд» — дыра в полу
 ROUND = 90.0          # Round Duration
@@ -34,7 +36,7 @@ FINALE, FINALE_HOLD = 75.0, 5.0   # с первой стоянки после FI
 MIN_LAST_STAY = 2.5   # последний переезд не позже, чем за столько секунд до конца раунда
 WARN = 3.0            # предупреждение до переезда: маяк следующего трона, скрип, сообщение
 MOVE = 1.5            # полёт короны к следующему трону
-SHRINK = 0.58         # кольцо за стоянку сжимается до r 2.4 · 0.58 ≈ 1.4 (масштаб X/Z зоны) и при переезде расправляется
+SHRINK = 0.6          # кольцо за стоянку сжимается до r 2.0 · 0.6 = 1.2 (масштаб X/Z зоны) и при переезде расправляется
 PUNCH_PUSH, PUNCH_LIFT = 6.0, 4.0   # м/с от удара (схема Death Carousel, проверена плейтестом 2026-10-25): сбить на 2 м
 DASH, DASH_TIME = 1.5, 3.0          # после респауна бег ×1.5 на 3 с: из угла до короны быстрее
 TRAPS = False         # ловушки у тронов (вагонетка, мишени, обломки) — отключены по решению 2026-10-25, код оставлен
@@ -226,13 +228,14 @@ def build(name: str, workshop: str = WORKSHOP) -> str:
     zone = crown.add(obj("Zone").trigger(
         TriggerShape.CAPSULE, radius=ZONE_R, height=8.0, stay_interval=1.0,
         on_stay=[act_change_score(1, Op.ADD, Targets.SOURCE)]))
-    zone.add(obj("Ring", pos=(0, 0.01, 0)).prop(zone_obj.guid, collision=Collision.NONE, shadow=Shadow.OFF,
-                                                 tint=(1.0, 0.8, 0.15, 1)))
+    ring_k = ZONE_R / 2.4   # crown_zone.obj сделан под r 2.4
+    zone.add(obj("Ring", pos=(0, 0.01, 0), scale=(ring_k, 1, ring_k)).prop(zone_obj.guid, collision=Collision.NONE,
+                                                                          shadow=Shadow.OFF, tint=(1.0, 0.8, 0.15, 1)))
     # двойная корона в финале: второй такой же триггер (+1 ещё раз) и красное кольцо чуть шире; включает режиссёр
     double = zone.add(obj("DoubleZone", active=False).trigger(
         TriggerShape.CAPSULE, radius=ZONE_R, height=8.0, stay_interval=1.0,
         on_stay=[act_change_score(1, Op.ADD, Targets.SOURCE)]))
-    double.add(obj("DoubleRing", pos=(0, 0.02, 0), scale=(1.08, 1, 1.08))
+    double.add(obj("DoubleRing", pos=(0, 0.02, 0), scale=(1.08 * ring_k, 1, 1.08 * ring_k))
                .prop(zone_obj.guid, collision=Collision.NONE, shadow=Shadow.OFF, tint=(1.0, 0.25, 0.1, 1)))
     crown.add(obj("CrownModel", pos=(0, 3.4, 0), scale=(1.3, 1.3, 1.3))
               .prop(crown_obj.guid, collision=Collision.NONE, tint=(1.0, 0.78, 0.1, 1))

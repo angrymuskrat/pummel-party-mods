@@ -37,20 +37,19 @@ HORSE_R = 6.5         # кольцо шестов с лошадками
 HORSE_LOW = -0.25     # нижняя точка лошадки: седло на 0.8 м над полом — запрыгнуть можно (прыжок 0.98 м)
 HORSE_RISE = 0.9      # ход вверх; на подъёме седло 1.7 м — брусья (0.55 м) проходят под стоящим на нём
 ROOF_H = 6.0          # высота крыши над полом: камера третьего лица у края смотрит под неё
-EDGE_FALL = (25.0, 70.0)   # когда падает каждый из 8 секторов края, с, от начала раунда (у каждого своя случайная задержка)
+EDGE_FALL = (18.0, 49.0)   # когда падает каждый из 8 секторов края, с, от начала раунда (у каждого своя случайная задержка)
 EDGE_WARN = 1.5       # красный сектор и скрип до падения
-# фазы эскалации, с от начала раунда
-T_SWEEP_A, T_EDGE, T_SWEEP_C, T_DEBRIS, T_GRAVITY = 10.0, 25.0, 40.0, 50.0, 60.0
+# фазы эскалации, с от начала раунда (прожарка 2026-10-25: расписание 90-секундного раунда, сжатое в 0.7 раза)
+T_SWEEP_A, T_EDGE, T_SWEEP_C, T_DEBRIS, T_GRAVITY = 7.0, 18.0, 28.0, 35.0, 42.0
 PUNCH_PUSH, PUNCH_LIFT = 7.0, 4.5   # м/с от удара: в полёте ~0.36 с при гравитации 25 — отлёт на 2–3 м
-SCORE_PER_SECOND = 1  # очки за каждую секунду, пока жив
-HIT_PENALTY = 3       # минус за пропущенный удар кулаком или метлой: три секунды выживания
 # обломки сыплются с конструкции крыши: появляются прямо под ней (низ крыши — ROOF_H), а не над, иначе пролетали
 # бы сквозь твёрдую крышу (Mover коллизий не замечает)
+DEBRIS = False        # фаза обломков выключена 2026-10-25: случайный стан без метки на полу — смерть, которую не прочитать
 DEBRIS_H = 5.6        # высота появления обломков над полом
 DEBRIS_SPEED = 4.0    # м/с вниз (Mover Custom): долетает до пола за DEBRIS_H / DEBRIS_SPEED = 1.4 с
 POND_HALF = 30.0      # пруд 60 × 60 м вокруг карусели
 GRAVITY = 9.81        # Physics.gravity по умолчанию; гравитация игрока = playerGravity · g_новая / 9.81 (SimpleModPlayer)
-ROUND = 90.0          # Round Duration
+ROUND = 60.0          # Round Duration: вылетевший первым не смотрит полторы минуты
 
 
 def spin_chain(target_guid, ramp, duration):
@@ -68,27 +67,26 @@ def spin_chain(target_guid, ramp, duration):
 
 def build(name: str, workshop: str = WORKSHOP) -> str:
     rng = random.Random("death-carousel")
-    mod = Mod(name, description="Rusted Park: stay on the spinning carousel above the acid pond. Every second alive scores, "
-                                "every hit taken costs. / Карусель смерти: держись на карусели над кислотным прудом — "
-                                "очки за каждую секунду, минус за пропущенные удары.",
-              round_duration=90, end_conditions=EndCondition.TIMER | EndCondition.REMAINING_ALIVE,
-              # места по очкам: +1 в секунду, пока жив (tickTrigger игрока идёт только у живого и во время раунда),
-              # минус за удар кулаком (weaponHitTrigger) и метлой (триггер бруса); очки могут уйти в минус
-              placement=Placement.MOST_POINTS, min_players_alive=1,
+    mod = Mod(name, description="Rusted Park: stay on the spinning carousel above the acid pond and push the others off. "
+                                "Last one standing wins. / Карусель смерти: держись на карусели над кислотным прудом и "
+                                "сталкивай остальных — побеждает последний.",
+              round_duration=ROUND, end_conditions=EndCondition.TIMER | EndCondition.REMAINING_ALIVE,
+              # места по выбыванию. Last Man Standing по коду — тоже очки: умерший k-м получает 10·k
+              # (SimpleModPlayer, при смерти), дожившие до таймера — 10·(выбывших + 1) (SimpleModController.RoundEnded).
+              # Прежние «+1 в секунду и −3 за удар» отменены (прожарка 2026-10-25): раунд кончается сразу после падения
+              # предпоследнего, поэтому у двух последних секунд поровну, и места решали удары — чаще всего ботов
+              placement=Placement.LAST_MAN_STANDING, min_players_alive=1,
               # удар не убивает, а отталкивает. Без здоровья у игрока 1 HP (SimpleModPlayer.MaxHealth), и удар с уроном 1
               # убивал сразу; урон 0 даёт только анимацию вздрагивания. Своего отброса у удара нет — он в weaponHitTrigger:
               # Source — бьющий, Receiver — получивший, Towards Receiver = от бьющего. m_hitType 1 = Melee; при 0 триггер
               # не срабатывает ни на что. Оглушение выключено: длительность приводится к целым секундам, 0.8 → 0
               settings_overrides={"respawnEnabled": False, "useHealth": False, "showHealthBar": False,
                                   "canPunch": True, "punchDamage": 0, "punchStunsTarget": False,
-                                  "weaponHitTrigger": {"m_type": 80, "m_actions": [], "m_hitType": 1},
-                                  "tickTrigger": {"m_type": 96, "m_actions": [], "m_interval": complex_float(1.0)}},
+                                  "weaponHitTrigger": {"m_type": 80, "m_actions": [], "m_hitType": 1}},
               player_triggers={"onDeathTrigger": [act_show_message("Минус один! / One down!", 1.5)],
-                               "tickTrigger": [act_change_score(SCORE_PER_SECOND, Op.ADD, Targets.SOURCE)],
                                "weaponHitTrigger": [
                                    act_change_velocity(PUNCH_PUSH, VelocityDir.TOWARDS_RECEIVER, Op.ADD, flags=Targets.RECEIVER),
-                                   act_change_velocity(PUNCH_LIFT, VelocityDir.UP, Op.ADD, flags=Targets.RECEIVER),
-                                   act_change_score(HIT_PENALTY, Op.SUB, Targets.RECEIVER)]})
+                                   act_change_velocity(PUNCH_LIFT, VelocityDir.UP, Op.ADD, flags=Targets.RECEIVER)]})
 
     # --- ассеты
     def prop(fn): return mod.add_file_asset("prop", os.path.join(ASSETS, "models", fn))
@@ -111,18 +109,19 @@ def build(name: str, workshop: str = WORKSHOP) -> str:
 
     # --- обломок: падает Mover'ом (у props нет физики), сбивает и оглушает, у пола взрывается и исчезает.
     # Источник в триггере — вошедший игрок, получатель — обломок: Towards Source = от обломка к игроку
-    debris_root = (obj("Debris")
-                   .mover(MoverDir.CUSTOM, (0, -1, 0), DEBRIS_SPEED)
-                   .trigger(TriggerShape.SPHERE, radius=1.1,
-                            on_enter=[act_stun(1.5, Targets.SOURCE),
-                                      act_change_velocity(9.0, VelocityDir.TOWARDS_SOURCE, Op.SET),
-                                      act_change_velocity(5.0, VelocityDir.UP, Op.ADD)])
-                   .logic(trig_enable(act_wait(DEBRIS_H / DEBRIS_SPEED),
-                                      act_spawn_effect(Effect.EXPLOSION, Targets.RECEIVER),
-                                      act_kill(Targets.RECEIVER))))
-    debris_root.add(obj("Rock", scale=(1.6, 1.6, 1.6))   # add() возвращает ребёнка, поэтому корень держим отдельно
-                    .prop(debris_obj.guid, collision=Collision.NONE, tint=(0.5, 0.45, 0.4, 1)))
-    debris = mod.add_prefab(debris_root)
+    if DEBRIS:
+        debris_root = (obj("Debris")
+                       .mover(MoverDir.CUSTOM, (0, -1, 0), DEBRIS_SPEED)
+                       .trigger(TriggerShape.SPHERE, radius=1.1,
+                                on_enter=[act_stun(1.5, Targets.SOURCE),
+                                          act_change_velocity(9.0, VelocityDir.TOWARDS_SOURCE, Op.SET),
+                                          act_change_velocity(5.0, VelocityDir.UP, Op.ADD)])
+                       .logic(trig_enable(act_wait(DEBRIS_H / DEBRIS_SPEED),
+                                          act_spawn_effect(Effect.EXPLOSION, Targets.RECEIVER),
+                                          act_kill(Targets.RECEIVER))))
+        debris_root.add(obj("Rock", scale=(1.6, 1.6, 1.6))   # add() возвращает ребёнка, поэтому корень держим отдельно
+                        .prop(debris_obj.guid, collision=Collision.NONE, tint=(0.5, 0.45, 0.4, 1)))
+        debris = mod.add_prefab(debris_root)
 
     # --- пруд и зона смерти: всё ниже пола карусели
     world = mod.add(obj("World"))
@@ -183,8 +182,7 @@ def build(name: str, workshop: str = WORKSHOP) -> str:
         for k, deg in enumerate(angles):
             arm = ring.add(obj(f"Sweeper_{k}", rot=(0, deg, 0)).trigger(
                 TriggerShape.BOX, size=(0.9, 1.4, length), center=(0, 0.7, mid),
-                on_enter=[act_change_score(HIT_PENALTY, Op.SUB, Targets.SOURCE),
-                          act_change_velocity(SWEEP_PUSH, VelocityDir.TOWARDS_SOURCE, Op.ADD),
+                on_enter=[act_change_velocity(SWEEP_PUSH, VelocityDir.TOWARDS_SOURCE, Op.ADD),
                           act_change_velocity(SWEEP_LIFT, VelocityDir.UP, Op.ADD),
                           act_play_sound(sweep_wav.guid, 0.9, Targets.RECEIVER)]))
             arm.add(obj("Bar", pos=(0, 0.35, mid), scale=(0.35, 0.4, length))
@@ -206,14 +204,15 @@ def build(name: str, workshop: str = WORKSHOP) -> str:
                      .prop(prop_guid, collision=Collision.BOX, materials=[mat.guid]))
 
     # --- фаза 3: обломки. Точки над полом неподвижны (карусель уносит игроков из-под них); спавнер в выключенном RingB
-    points = mod.add(obj("DebrisPoints"))
-    point_objs = []
-    for k, (r, deg) in enumerate(((1.2, 45), (3.0, 130), (4.5, 250), (5.5, 10), (6.0, 190), (8.5, 310))):   # первая — у колонны
-        a = math.radians(deg)
-        point_objs.append(points.add(obj(f"Point_{k}", pos=(r * math.cos(a), DECK_Y + DEBRIS_H, r * math.sin(a)))))
-    ring_b = world.add(obj("RingB", pos=(0, DECK_Y + DEBRIS_H, 0), active=False).spawner(
-        [debris.guid], interval=(2.0, 4.0), kind=SpawnerType.ALWAYS, location=SpawnerLocation.ON_TARGETS,
-        spawn_points=[p.transform_guid for p in point_objs], count=1))
+    if DEBRIS:
+        points = mod.add(obj("DebrisPoints"))
+        point_objs = []
+        for k, (r, deg) in enumerate(((1.2, 45), (3.0, 130), (4.5, 250), (5.5, 10), (6.0, 190), (8.5, 310))):   # первая — у колонны
+            a = math.radians(deg)
+            point_objs.append(points.add(obj(f"Point_{k}", pos=(r * math.cos(a), DECK_Y + DEBRIS_H, r * math.sin(a)))))
+        ring_b = world.add(obj("RingB", pos=(0, DECK_Y + DEBRIS_H, 0), active=False).spawner(
+            [debris.guid], interval=(2.0, 4.0), kind=SpawnerType.ALWAYS, location=SpawnerLocation.ON_TARGETS,
+            spawn_points=[p.transform_guid for p in point_objs], count=1))
 
     # --- задний план: берег ниже воды, фонари по кромке, мусор в пруду, колесо обозрения, холмы и деревья
     backdrop = mod.add(obj("Backdrop"))
@@ -258,6 +257,10 @@ def build(name: str, workshop: str = WORKSHOP) -> str:
     mod.add(obj("Spinner").logic(trig_round_start(
         act_wait(SPIN_START), *spin_chain(carousel.transform_guid, SPIN_RAMP, ROUND - SPIN_START))))
 
+    debris_phase = [act_wait(T_DEBRIS - T_SWEEP_C),
+                    act_show_message("Обломки! / Debris!", 2.0),
+                    act_set_active(ActiveState.ENABLED, [ring_b.transform_guid]),
+                    act_wait(T_GRAVITY - T_DEBRIS)] if DEBRIS else [act_wait(T_GRAVITY - T_SWEEP_C)]
     mod.add(obj("Director").logic(
         trig_round_start(
             act_show_message("Держись! / Hold on!", 2.0),
@@ -269,10 +272,9 @@ def build(name: str, workshop: str = WORKSHOP) -> str:
             act_wait(T_SWEEP_C - T_EDGE),
             act_show_message("Ещё метла! / More sweepers!", 2.0),
             act_set_active(ActiveState.ENABLED, [ring_c.transform_guid]),
-            act_wait(T_DEBRIS - T_SWEEP_C),
-            act_show_message("Обломки! / Debris!", 2.0),
-            act_set_active(ActiveState.ENABLED, [ring_b.transform_guid]),
-            act_wait(T_GRAVITY - T_DEBRIS),
+            *debris_phase,
+            # низкая гравитация вдвое удлиняет полёт от удара (0.36 → 0.72 с, отлёт ~2.5 → ~5 м): на диске r 7
+            # почти любой удар становится смертельным — это финальная фаза, после неё раунд обычно кончается за секунды
             act_set_gravity((0, -GRAVITY / 2, 0)),
             act_show_message("Невесомость! / Low gravity!", 2.0))))
     mod.add(obj("Notes").note("Сгенерировано build_mod.py из packs/abandoned-park/minigames/death-carousel/DESIGN.md"))

@@ -29,6 +29,14 @@ PAD_SPEED = 16.0          # батут: Set Up 16 м/с → подъём v²/2g 
 PAD_R = (9.6,) * 7 + (9.8,)   # батут перед каждым киоском; седьмой дальше, чтобы лошадки карусели его не задевали
 CAROUSEL_ROOF_Y = 2.6     # низ крыши карусели; верх коллизии = 2.6 + 4.35·0.25 ≈ 3.69
 TICKET_DELAY = (6.0, 11.0)    # секунд до нового билета после подбора (было 4–8)
+# дефицит (прожарка 2026-10-25): было 14 билетов одновременно на 4–6 игроков — каждый собирал свои и не встречал
+# соперников. Теперь 8: крыши через одну, 2 у карусели, 2 случайных
+ROOF_TICKETS = (0, 2, 4, 6)   # киоски с билетом на крыше; батуты остаются у всех восьми
+RANDOM_COUNT = 2
+JACKPOT_AT = 40.0             # с этой секунды у пруда появляется большой билет +3 — разгон к концу раунда
+JACKPOT_VALUE = 3
+JACKPOT_DELAY = (8.0, 12.0)
+JACKPOT_POINTS = ((2.0, -0.9), (5.0, 4.0), (-5.0, 4.0), (1.5, 8.9))   # у кромки пруда: риск рядом с наградой
 
 
 def booth_angle(i):
@@ -69,8 +77,9 @@ def build(name: str, workshop: str = WORKSHOP) -> str:
     dirt_mat = mod.add_material("Dirt", tex("dirt.png"), tiling=(20.0, 20.0))
     paint_mat = mod.add_material("CarouselPaint", tex("carousel_paint.png"), tiling=(1.0, 1.0))
 
-    # --- префабы билета: визуал (вертикально, с наклоном 15°) и предмет
-    ticket_visual = mod.add_prefab(obj("Ticket Visual", pos=(0, 0.15, 0), rot=(90, 0, 15))
+    # --- префабы билета: визуал (вертикально, с наклоном 15°) и предмет. Визуал ×1.5 и чуть выше (было ×1 на 0.15):
+    # билет на крыше киоска должен читаться снизу, иначе батут уводит на пустую крышу
+    ticket_visual = mod.add_prefab(obj("Ticket Visual", pos=(0, 0.3, 0), rot=(90, 0, 15), scale=(1.5, 1.5, 1.5))
                                    .prop(ticket_obj.guid, collision=Collision.NONE, tint=(1.0, 0.85, 0.3, 1)))
     # билет — «оружие», которое исчезает в следующем кадре после подбора. Боты без оружия идут к ближайшему свободному
     # оружию (SimpleModPlayer.UpdateTargetType), а Pickup не ищут вовсе — так боты собирают билеты. Урон обнулён:
@@ -83,6 +92,15 @@ def build(name: str, workshop: str = WORKSHOP) -> str:
         on_pickup=[act_change_score(1, Op.ADD, Targets.SOURCE),
                    act_spawn_effect(Effect.SPARKLES, Targets.RECEIVER),
                    act_play_sound(pickup_wav.guid, 0.8, Targets.RECEIVER)],
+        can_drop=False, disappear_when_dropped=True, auto_drop=True, drop_after=0.0))
+    # большой билет: тот же механизм, ×2.5 и красный, +3 и конфетти
+    jackpot_visual = mod.add_prefab(obj("Jackpot Visual", pos=(0, 0.5, 0), rot=(90, 0, 15), scale=(2.5, 2.5, 2.5))
+                                    .prop(ticket_obj.guid, collision=Collision.NONE, tint=(1.0, 0.2, 0.12, 1)))
+    jackpot_item = mod.add_prefab(obj("Jackpot Item").item(
+        ItemType.WEAPON, visual_prefab_guid=jackpot_visual.guid, weapon_info=ticket_weapon,
+        on_pickup=[act_change_score(JACKPOT_VALUE, Op.ADD, Targets.SOURCE),
+                   act_spawn_effect(Effect.CONFETTI, Targets.RECEIVER),
+                   act_play_sound(pickup_wav.guid, 1.0, Targets.RECEIVER)],
         can_drop=False, disappear_when_dropped=True, auto_drop=True, drop_after=0.0))
 
     # --- игровой пол и киоски
@@ -234,28 +252,31 @@ def build(name: str, workshop: str = WORKSHOP) -> str:
     for i, (x, z) in enumerate(((17, 17), (-17, 17), (17, -17), (-17, -17))):
         spawns.add(obj(f"Respawn_{i}", pos=(x, 1, z)).player_spawn(SpawnShape.POINT, SpawnUsage.RESPAWN))
 
-    # --- билеты: 8 на крышах киосков, 2 у карусели (внутри круга лошадок и на крыше), 4 в случайных точках
+    # --- билеты: 4 на крышах киосков, 2 у карусели (внутри круга лошадок и на крыше), 2 в случайных точках
     spawners = mod.add(obj("Ticket Spawners"))
     specials = []   # особые узлы сетки ботов: точка каждого билета, батуты, крыши
 
-    def ticket_spawner(name, pos, **kw):
+    def ticket_spawner(name, pos, item=ticket_item, delay=TICKET_DELAY, active=True, **kw):
         kw.setdefault("location", SpawnerLocation.ON_SPAWNER)
-        return spawners.add(obj(name, pos=pos).spawner([ticket_item.guid], interval=(1.0, None), delay=TICKET_DELAY,
-                                                      kind=SpawnerType.ON_DESTRUCTION, **kw))
+        return spawners.add(obj(name, pos=pos, active=active).spawner(
+            [item.guid], interval=(1.0, None), delay=delay, kind=SpawnerType.ON_DESTRUCTION, **kw))
 
-    for i in range(8):
+    for i in ROOF_TICKETS:
         a, r = booth_angle(i), 12.3   # центр крыши (козырёк смещает габарит киоска наружу)
         roof = (r * math.cos(a), BOOTH_TOP + 0.6, r * math.sin(a))
         ticket_spawner(f"Roof_{i}", roof)
         specials += [{"name": f"Nav_Pad_{i}", "pos": (pads[i].pos[0], 0.5, pads[i].pos[2]), "kind": "pad"},
                      {"name": f"Nav_Roof_{i}", "pos": (roof[0], BOOTH_TOP + 0.5, roof[2]), "kind": "roof", "pad": f"Nav_Pad_{i}"}]
+    # батут 7 ведёт ещё и на крышу карусели — его узел нужен, даже если на киоске 7 билета нет
+    if 7 not in ROOF_TICKETS:
+        specials.append({"name": "Nav_Pad_7", "pos": (pads[7].pos[0], 0.5, pads[7].pos[2]), "kind": "pad"})
     inner = (CAROUSEL[0] + 1.0, 0.6, CAROUSEL[2])
     ticket_spawner("Carousel_Inner", inner)
     top = (CAROUSEL[0], CAROUSEL_ROOF_Y + 4.35 * 0.25 + 0.6, CAROUSEL[2])   # над осью: точка на вращающейся крыше не движется
     ticket_spawner("Carousel_Roof", top)
     specials += [{"name": "Nav_CarouselInner", "pos": (inner[0], 0.5, inner[2]), "kind": "ground"},
                  {"name": "Nav_CarouselRoof", "pos": (top[0], top[1] - 0.1, top[2]), "kind": "roof", "pad": "Nav_Pad_7"}]
-    # случайные: один спавнер держит 4 билета, каждый раз в свободной из 12 точек (ModSpawner.Spawn)
+    # случайные: один спавнер держит RANDOM_COUNT билетов, каждый раз в свободной из 12 точек (ModSpawner.Spawn)
     points = [(sx * 15.0, sz * 15.6) for sx, sz in CORNERS]                                   # угловые сцены
     points += [(10.5, 0.0), (0.0, 10.5), (-10.5, 0.0), (0.0, -10.5)]                          # между батутами
     points += [(14.5 * math.cos(math.radians(33.75 + 90 * k)), 14.5 * math.sin(math.radians(33.75 + 90 * k)))
@@ -263,10 +284,22 @@ def build(name: str, workshop: str = WORKSHOP) -> str:
     targets = spawners.add(obj("Random_Points"))
     point_objs = [targets.add(obj(f"Point_{k}", pos=(x, 0.6, z))) for k, (x, z) in enumerate(points)]
     ticket_spawner("Random", (0, 0.6, 0), location=SpawnerLocation.ON_TARGETS,
-                   spawn_points=[p.transform_guid for p in point_objs], count=4)
+                   spawn_points=[p.transform_guid for p in point_objs], count=RANDOM_COUNT)
     specials += [{"name": f"Nav_Point_{k}", "pos": (x, 0.5, z), "kind": "ground"} for k, (x, z) in enumerate(points)]
+    # большой билет: спавнер выключен до JACKPOT_AT. Spawn On Destruction в первом же Update после включения ставит
+    # предмет сразу (m_lastAliveTimes = MinValue, ModSpawner.DoSpawn), дальше — через JACKPOT_DELAY после подбора
+    jp_targets = spawners.add(obj("Jackpot_Points"))
+    jp_objs = [jp_targets.add(obj(f"Point_{k}", pos=(x, 0.6, z))) for k, (x, z) in enumerate(JACKPOT_POINTS)]
+    jackpot = ticket_spawner("Jackpot", (0, 0.6, -1.0), item=jackpot_item, delay=JACKPOT_DELAY, active=False,
+                             location=SpawnerLocation.ON_TARGETS, spawn_points=[p.transform_guid for p in jp_objs], count=1)
+    specials += [{"name": f"Nav_Jackpot_{k}", "pos": (x, 0.5, z), "kind": "ground"} for k, (x, z) in enumerate(JACKPOT_POINTS)]
 
-    mod.add(obj("Director").logic(trig_round_start(act_show_message("Собери билеты! / Grab the tickets!", 3.0))))
+    mod.add(obj("Director").logic(trig_round_start(
+        act_show_message("Собери билеты! / Grab the tickets!", 3.0),
+        act_wait(JACKPOT_AT),
+        act_set_active(ActiveState.ENABLED, [jackpot.transform_guid]),
+        act_play_sound(pickup_wav.guid, 1.0, Targets.RECEIVER),
+        act_show_message(f"Большой билет у пруда: +{JACKPOT_VALUE}! / Jackpot by the pond: +{JACKPOT_VALUE}!", 3.0))))
     mod.add(obj("Notes").note("Сгенерировано build_mod.py из packs/abandoned-park/minigames/tickets/DESIGN.md"))
     out = mod.write(workshop)
 
