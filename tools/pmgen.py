@@ -217,7 +217,7 @@ def _targets(flags: int, guids: list[str] | None):
 ACTION_CLASS = {Action.KILL: "KillAction", Action.CHANGE_HEALTH: "ChangeHealthAction", Action.CHANGE_SCORE: "ChangeScoreAction",
                 Action.SPAWN_EFFECT: "SpawnEffectAction", Action.PLAY_SOUND: "PlaySoundAction", Action.SHOW_MESSAGE: "ShowMessageAction",
                 Action.CHANGE_VELOCITY: "ChangeVelocityAction", Action.MODIFY_PLAYER: "ModifyPlayerAction",
-                Action.WAIT: "WaitAction"}
+                Action.WAIT: "WaitAction", Action.SPAWN_PREFAB: "SpawnPrefabAction"}
 
 
 def _action(type_id: int, flags: int = Targets.SOURCE, targets: list[str] | None = None, **fields) -> tuple[int, dict]:
@@ -266,7 +266,7 @@ def act_set_gravity(vec=(0, -9.81, 0)):
 
 def act_modify_player_speed(multiplier: float, flags=Targets.SOURCE, targets=None):
     """Modify Player Action, режим MovementSpeedMultiplier (0…100): maxSpeed, разгон и торможение игрока × multiplier
-    (SimpleModPlayer.SetMovementSpeedMultiplier); при респауне игра сама возвращает 1. Не проверено."""
+    (SimpleModPlayer.SetMovementSpeedMultiplier); при респауне игра сама возвращает 1. Плейтест 2026-10-25 (общий отчёт пользователя: «всё работает»): Mascot Throne."""
     return _action(Action.MODIFY_PLAYER, flags, targets, m_playerActionType=0, m_movementSpeed=float(multiplier),
                    m_gravity={"x": 0.0, "y": -9.81, "z": 0.0})
 
@@ -287,15 +287,25 @@ def act_play_sound(clip_guid: str | None, volume=1.0, flags=Targets.RECEIVER, ta
                    m_clip={"m_assetGUID": {"serializedGuid": clip_guid or GUID_EMPTY}}, m_volume=float(volume))
 
 
+def act_spawn_prefab(prefab_guids: list[str], flags=Targets.RECEIVER, targets=None, offset=(0, 0, 0)):
+    """Spawn Prefab Action: префаб (случайный из списка) в позиции каждой цели + offset в мировых осях
+    (SpawnPrefabAction, без Parent To Target и без мировой точки). Run mode ServerRelay. Плейтест 2026-10-25 (общий отчёт пользователя: «всё работает»): Ticket Rush, On Death."""
+    def v(p): return {"x": p[0], "y": p[1], "z": p[2]}
+    return _action(Action.SPAWN_PREFAB, flags, targets,
+                   m_prefabs=[{"m_assetGUID": {"serializedGuid": g}} for g in prefab_guids],
+                   m_spawnAtPosition=False, m_position=v((0, 0, 0)), m_rotation=v((0, 0, 0)), m_parentToTarget=False,
+                   m_targetPositionOffset=v(offset), m_targetRotationOffset=v((0, 0, 0)))
+
+
 def act_set_color(color, flags=Targets.ADVANCED, targets: list[str] | None = None):
-    """Цель — трансформ или Prop: меняет tint у Prop на объекте; Logic — у всех дочерних props (SetColorAction). Не проверено."""
+    """Цель — трансформ или Prop: меняет tint у Prop на объекте; Logic — у всех дочерних props (SetColorAction). Плейтест 2026-10-25 (общий отчёт пользователя: «всё работает»): Death Carousel, Coaster Run."""
     return _action(Action.SET_COLOR, flags, targets, m_color={"r": color[0], "g": color[1], "b": color[2], "a": color[3]})
 
 
 def act_play_tween(targets: list[str], kind=Tween.LOCAL_POSITION, end=(0, 0, 0), end_type=TweenValue.OFFSET, seconds=1.0,
                    ease=Ease.LINEAR, start=(0, 0, 0), start_type=TweenValue.CURRENT, axis=(0, 1, 0), degrees=0.0,
                    flags=Targets.ADVANCED):
-    """Одноразовый твин (LeanTween). axis/degrees — только для ROTATE_*_AXIS. Не проверено."""
+    """Одноразовый твин (LeanTween). axis/degrees — только для ROTATE_*_AXIS. Плейтест 2026-10-25 (общий отчёт пользователя: «всё работает»): Death Carousel, Mascot Throne."""
     def v(p): return {"x": p[0], "y": p[1], "z": p[2]}
     return _action(Action.PLAY_TWEEN, flags, targets, m_tweenType=kind, m_easeType=ease, m_time=float(seconds),
                    m_startValueType=start_type, m_startValue=v(start), m_endValueType=end_type, m_endValue=v(end),

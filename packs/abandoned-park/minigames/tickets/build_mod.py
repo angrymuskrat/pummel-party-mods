@@ -31,7 +31,12 @@ CAROUSEL_ROOF_Y = 2.6     # низ крыши карусели; верх кол�
 TICKET_DELAY = (6.0, 11.0)    # секунд до нового билета после подбора (было 4–8)
 # дефицит (прожарка 2026-10-25): было 14 билетов одновременно на 4–6 игроков — каждый собирал свои и не встречал
 # соперников. Теперь 8: крыши через одну, 2 у карусели, 2 случайных
-ROOF_TICKETS = (0, 2, 4, 6)   # киоски с билетом на крыше; батуты остаются у всех восьми
+ROOF_TICKETS = (0, 2, 4, 6)   # киоски с билетом на крыше
+# батуты только к крышам с билетом и к крыше карусели (седьмой): батут к пустой крыше обещал награду и не давал её.
+# На месте убранных — низкий ящик, чтобы кольцо между киосками не стало прямой дорожкой (прожарка 2026-10-25, Q2)
+PADS = ROOF_TICKETS + (7,)
+LOOT_VALUE = 1                # выпадает из умершего: убийство окупается (Q1). Не больше 1: у жертвы с 0–3 билетами
+LOOT_LIFT = 0.9               # отнимается 0–1, и +2 сделали бы выгодной охоту на бедных
 RANDOM_COUNT = 2
 JACKPOT_AT = 40.0             # с этой секунды у пруда появляется большой билет +3 — разгон к концу раунда
 JACKPOT_VALUE = 3
@@ -76,6 +81,17 @@ def build(name: str, workshop: str = WORKSHOP) -> str:
     metal_mat = mod.add_material("RustMetal", tex("rust_metal.png"), tiling=(1.0, 1.0))
     dirt_mat = mod.add_material("Dirt", tex("dirt.png"), tiling=(20.0, 20.0))
     paint_mat = mod.add_material("CarouselPaint", tex("carousel_paint.png"), tiling=(1.0, 1.0))
+
+    # --- добыча: на месте смерти выпадает билет. Pickup, а не Weapon: боты его не видят — иначе бот, погибший в пруду,
+    # оставлял бы над кислотой приманку для следующего бота. Висит на LOOT_LIFT над точкой смерти (предмет кинематический)
+    loot_visual = mod.add_prefab(obj("Loot Visual", pos=(0, 0.3, 0), rot=(90, 0, 15), scale=(1.5, 1.5, 1.5))
+                                 .prop(ticket_obj.guid, collision=Collision.NONE, tint=(1.0, 0.55, 0.15, 1)))
+    loot_item = mod.add_prefab(obj("Loot Item").item(
+        ItemType.PICKUP, visual_prefab_guid=loot_visual.guid,
+        on_pickup=[act_change_score(LOOT_VALUE, Op.ADD, Targets.SOURCE),
+                   act_spawn_effect(Effect.SPARKLES, Targets.RECEIVER),
+                   act_play_sound(pickup_wav.guid, 0.8, Targets.RECEIVER)]))
+    mod.player_triggers["onDeathTrigger"].append(act_spawn_prefab([loot_item.guid], Targets.RECEIVER, offset=(0, LOOT_LIFT, 0)))
 
     # --- префабы билета: визуал (вертикально, с наклоном 15°) и предмет. Визуал ×1.5 и чуть выше (было ×1 на 0.15):
     # билет на крыше киоска должен читаться снизу, иначе батут уводит на пустую крышу
@@ -142,15 +158,20 @@ def build(name: str, workshop: str = WORKSHOP) -> str:
 
     # батуты: по одному перед каждым киоском (с крыши — билет), седьмой ещё и к крыше карусели. Подбрасывают вверх,
     # на крышу игрок доруливает в воздухе. Плита 2.2 м — бот «доходит» до узла в 1.6 м и в этот момент уже на батуте
-    pads = []
+    pads = {}
     for i in range(8):
         a = booth_angle(i)
-        pad = world.add(obj(f"JumpPad_{i}", pos=(PAD_R[i] * math.cos(a), 0, PAD_R[i] * math.sin(a))).trigger(
+        pos = (PAD_R[i] * math.cos(a), 0, PAD_R[i] * math.sin(a))
+        if i not in PADS:   # перед киоском без билета на крыше — низкий ящик поперёк кольца вместо батута
+            world.add(obj(f"PadCrate_{i}", pos=(pos[0], 0.35, pos[2]), rot=(0, -math.degrees(a), 0), scale=(1.0, 0.7, 2.4),
+                          layer=LAYER_WORLD_WALL).prop(PROP_CUBE, collision=Collision.BOX, materials=[rust_mat.guid]))
+            continue
+        pad = world.add(obj(f"JumpPad_{i}", pos=pos).trigger(
             TriggerShape.BOX, size=(2.2, 1.5, 2.2), center=(0, 0.8, 0),
             on_enter=[act_change_velocity(PAD_SPEED, VelocityDir.UP, Op.SET)]))
         pad.add(obj("Plate", pos=(0, 0.1, 0), scale=(2.2, 0.2, 2.2))
                 .prop(PROP_CUBE, collision=Collision.BOX, tint=(0.9, 0.2, 0.1, 1)))
-        pads.append(pad)
+        pads[i] = pad
 
     # карусель на самой большой пустой площадке: стойка, крыша и 4 лошадки вращаются вместе (Simple Animator),
     # билет внутри круга лошадок — надо проскочить между ними
