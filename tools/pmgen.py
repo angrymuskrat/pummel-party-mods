@@ -217,7 +217,8 @@ def _targets(flags: int, guids: list[str] | None):
 ACTION_CLASS = {Action.KILL: "KillAction", Action.CHANGE_HEALTH: "ChangeHealthAction", Action.CHANGE_SCORE: "ChangeScoreAction",
                 Action.SPAWN_EFFECT: "SpawnEffectAction", Action.PLAY_SOUND: "PlaySoundAction", Action.SHOW_MESSAGE: "ShowMessageAction",
                 Action.CHANGE_VELOCITY: "ChangeVelocityAction", Action.MODIFY_PLAYER: "ModifyPlayerAction",
-                Action.WAIT: "WaitAction", Action.SPAWN_PREFAB: "SpawnPrefabAction"}
+                Action.WAIT: "WaitAction", Action.SPAWN_PREFAB: "SpawnPrefabAction",
+                Action.GIVE_MINIGAME_ITEM: "GiveMinigameItemAction", Action.SET_PLAYER_VISUAL: "SetPlayerVisualAction"}
 
 
 def _action(type_id: int, flags: int = Targets.SOURCE, targets: list[str] | None = None, **fields) -> tuple[int, dict]:
@@ -320,6 +321,28 @@ def act_match_transform(transform_guid: str, targets: list[str] | None = None, v
                    m_transformValuesToMatch=values)
 
 
+def act_give_minigame_item(item_prefab_guid: str, flags=Targets.RECEIVER, targets=None):
+    """Give Minigame Item: спавнит префаб с ModItem на корне у игрока-цели и сразу отдаёт ему (TryGiveItem).
+    Run mode ServerRelay. Образец — InbuiltMods/Pummel Punch, onFirstSpawnTrigger (Receiver = сам игрок). Не проверено в нашей сборке."""
+    return _action(Action.GIVE_MINIGAME_ITEM, flags, targets, m_item={"m_assetGUID": {"serializedGuid": item_prefab_guid}})
+
+
+def act_set_player_visual(prefab_guid: str | None, recolor=True, vertical_look_child=-1, movement_rotation_child=-1,
+                          flags=Targets.RECEIVER, targets=None):
+    """Set Player Visual (m_version 1): прячет модель игрока и ставит вместо неё префаб (SimpleModPlayer.SetCustomPlayerModel).
+    Рост и радиус CharacterController игра берёт из габарита НЕ-триггерных коллайдеров префаба (их делает триггерами),
+    поэтому в префабе нужен коллайдер; recolor красит все props префаба цветом игрока (props со своим материалом
+    не меняются). Предметы цепляются к детям префаба: правая рука — самый правый трансформ, голова — самый верхний,
+    Body — корень. prefab_guid None — вернуть обычную модель. Не проверено в игре (декомпиляция 2026-10-25)."""
+    type_id, data = _action(Action.SET_PLAYER_VISUAL, flags, targets,
+                            m_prefab={"m_assetGUID": {"serializedGuid": prefab_guid or GUID_EMPTY}},
+                            m_recolorPrefabUsingPlayerColor=bool(recolor),
+                            m_verticalLookTargetChildIndex=int(vertical_look_child),
+                            m_movementRotationTargetChildIndex=int(movement_rotation_child))
+    data["m_version"] = 1   # конструктор действия ставит 1; версия 0 — мод до выхода действия
+    return type_id, data
+
+
 # ---------------------------------------------------------------- триггеры (ModLogicTrigger)
 
 def enc_trigger(trigger_type: int, actions: list[tuple[int, dict]], **extra) -> bytes:
@@ -412,6 +435,22 @@ def anim_swing(frequency: float, degrees: float, axis=(0, 1, 0), offset=0.0) -> 
                       "object as defined by that layer's settings and animation curve.",
                       [_anim_layer(frequency, 1, axis, [_curve_key(0.0, -k, 0.0, 0.0), _curve_key(0.5, k, 0.0, 0.0),
                                                         _curve_key(1.0, -k, 0.0, 0.0)], offset=offset)])
+
+
+def anim_ellipse(period: float, rx: float, rz: float, clockwise=True) -> dict:
+    """Пресет 0 (Custom Animation): объект едет по эллипсу rx × rz вокруг стартовой точки и поворачивается по ходу.
+    Три слоя: X = rx·c(t), Z = ±rz·c(t + 0.25) (c — кривая −1→1→−1, как у слоёв Orbit), поворот вокруг ±Y линейно 0→1
+    за цикл. clockwise (вид сверху): старт в (−rx, 0) лицом к +Z, базовый поворот объекта — 0°; иначе старт лицом к −Z,
+    базовый поворот — 180°. На эллипсе нос отклоняется от касательной на несколько градусов. Не проверено в игре."""
+    f = 1.0 / period
+    sign = 1.0 if clockwise else -1.0
+    wave = [_curve_key(0.0, -1.0, 0.0, 0.0), _curve_key(0.5, 1.0, 0.0, 0.0), _curve_key(1.0, -1.0, 0.0, 0.0)]
+    return _animation(0, "Custom Animation",
+                      "Animate this object freely using animation layers. \nEach layer applies some movement or rotation to the "
+                      "object as defined by that layer's settings and animation curve.",
+                      [_anim_layer(f, 0, (rx, 0, 0), wave),
+                       _anim_layer(f, 0, (0, 0, sign * rz), wave, offset=0.25),
+                       _anim_layer(f, 1, (0, sign, 0), [_curve_key(0.0, 0.0, 0.0, 1.0), _curve_key(1.0, 1.0, 1.0, 0.0)])])
 
 
 # ---------------------------------------------------------------- объекты и компоненты
@@ -580,8 +619,12 @@ class Obj:
     def item(self, item_type=ItemType.PICKUP, visual_prefab_guid: str | None = None, on_pickup: list | None = None,
              on_drop=None, on_use=None, while_held=None, unique_pickup=False, priority=0, can_drop=True,
              disappear_when_dropped=False, auto_drop=False, drop_after=10.0, drop_on_death=True,
-             slot=0, hold_anim=0, cooldown=1.0, weapon_info: dict | None = None) -> Obj:
-        """weapon_info — полный JSON ModWeaponInfo (копия DEFAULT_WEAPON_INFO с правками); WeaponType 0 = Melee."""
+             slot=0, hold_anim=0, cooldown=1.0, weapon_info: dict | None = None, weapon_type=0,
+             held_offset=(0, 0, 0), held_rotation=(0, 0, 0)) -> Obj:
+        """weapon_info — полный JSON ModWeaponInfo (копия DEFAULT_WEAPON_INFO с правками); weapon_type — WeaponItemUsage
+        (Melee 0, Gun 1). cooldown — пауза между выстрелами (ModItem.UseItem сверяет её, а не basicInfo.cooldown).
+        slot — ModItemSlot (по типу 0, LeftHand 1, RightHand 2, Head 3, Body 4, Back 5); held_offset/held_rotation —
+        локальная поза предмета на слоте (SimpleModPlayer.PositionItemOnCharacter)."""
         self._comp("ModItem", [
             ("ItemType", enc_i32(item_type)),
             ("WeaponInfo", enc_json(weapon_info or DEFAULT_WEAPON_INFO)),
@@ -601,7 +644,7 @@ class Obj:
             ("PickupSoundType", enc_i32(0)),
             ("UniquePickup", enc_bool(unique_pickup)),
             ("ItemPickupPriority", enc_i32(priority)),
-            ("WeaponType", enc_i32(0)),
+            ("WeaponType", enc_i32(weapon_type)),
             ("Cooldown", enc_f32(cooldown)),
             ("HasLimitedUses", enc_bool(False)),
             ("DropAfterUses", enc_i32(3)),
@@ -610,8 +653,8 @@ class Obj:
             ("OnUseTrigger", enc_trigger(Trigger.NONE, on_use or [])),
             ("OnWhileHeldTrigger", enc_trigger(Trigger.NONE, while_held or [])),
             ("SecondsBetweenHeldAction", enc_f32(1.0)),
-            ("HeldPositionOffset", enc_vec3((0, 0, 0))),
-            ("HeldRotationOffset", enc_vec3((0, 0, 0))),
+            ("HeldPositionOffset", enc_vec3(held_offset)),
+            ("HeldRotationOffset", enc_vec3(held_rotation)),
             ("ItemSlot", enc_i32(slot)),
         ])
         return self

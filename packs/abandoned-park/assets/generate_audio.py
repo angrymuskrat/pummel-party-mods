@@ -172,7 +172,37 @@ def cannon_boom():
     return add(thump, noise_burst(0.7, 0.004, 6000, 150, rng, amp=1.4))
 
 
+def bump():
+    """Удар резинового бампера 0.45 с: глухой синус 150→70 Гц с дрожанием «боинг» и короткий шлепок шума."""
+    import random
+    rng = random.Random("bump")
+    n = int(RATE * 0.45)
+    out, phase = [], 0.0
+    for i in range(n):
+        t = i / RATE
+        f = 70 + 80 * math.exp(-t * 9) + 10 * math.sin(2 * math.pi * 14 * t) * math.exp(-t * 5)
+        phase += f / RATE
+        out.append(math.exp(-t * 8) * min(1.0, t / 0.003) * math.sin(2 * math.pi * phase))
+    return add(out, noise_burst(0.08, 0.002, 1800, 300, rng, amp=0.6))
+
+
+def glove_shot():
+    """Выстрел пружинной перчатки 0.35 с: «пру-инь» — тон взлетает 260→900 Гц с вибрато, в начале хлопок шума."""
+    import random
+    rng = random.Random("glove_shot")
+    n = int(RATE * 0.35)
+    out, phase = [], 0.0
+    for i in range(n):
+        t = i / RATE
+        f = 260 + 640 * (1 - math.exp(-t * 14)) + 40 * math.sin(2 * math.pi * 30 * t)
+        phase += f / RATE
+        out.append(0.6 * math.exp(-t * 9) * min(1.0, t / 0.004) * math.sin(2 * math.pi * phase))
+    return add(out, noise_burst(0.06, 0.002, 4000, 800, rng, amp=0.8))
+
+
 SOUNDS = {
+    "bump": bump,
+    "glove_shot": glove_shot,
     "cannon_boom": cannon_boom,
     "ticket_pickup": ticket_pickup,
     "sweep": sweep,

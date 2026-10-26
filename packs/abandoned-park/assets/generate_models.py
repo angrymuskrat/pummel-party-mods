@@ -598,7 +598,89 @@ def cannon_barrel():
     return m
 
 
+def bumper_car():
+    """Машинка автодрома 1.0×0.9×1.5 лицом к +Z, низ на y 0.14: корпус-ванна, наклонный капот, сиденье со спинкой,
+    руль, фары. Без своего материала: Set Player Visual красит такие props цветом игрока. Резиновый бампер и штанга
+    токосъёмника — отдельные модели (bumper_skirt, car_pole), чтобы им дать материалы и не перекрашивать."""
+    m = Mesh()
+    m.group = "tub"
+    m.add_box((0, 0.32, -0.1), (1.0, 0.36, 1.3), uv_scale=0.8)
+    m.group = "hood"
+    m.add_box((0, 0.5, 0.38), (0.9, 0.14, 0.5), rot=(12, 0, 0), uv_scale=0.8)
+    m.group = "seat"
+    m.add_box((0, 0.56, -0.3), (0.8, 0.12, 0.45), uv_scale=0.8)
+    m.add_box((0, 0.76, -0.58), (0.8, 0.5, 0.14), uv_scale=0.8)
+    m.group = "wheel"
+    m.add_cylinder((0, 0.78, 0.12), 0.17, 0.04, segments=12, rot=(-40, 0, 0))
+    m.add_cylinder((0, 0.66, 0.2), 0.03, 0.3, segments=6, rot=(-40, 0, 0))
+    m.group = "lights"
+    for x in (-0.3, 0.3):
+        m.add_sphere((x, 0.44, 0.58), 0.07, segments=8, rings=4)
+    return m
+
+
+def bumper_skirt():
+    """Резиновый бампер вокруг машинки: кольцо из четырёх брусьев 1.3×0.25×1.85, y 0.05–0.3."""
+    m = Mesh()
+    m.group = "rubber"
+    for z in (0.71, -0.91):
+        m.add_box((0, 0.175, z), (1.3, 0.25, 0.2), uv_scale=0.8)
+    for x in (-0.6, 0.6):
+        m.add_box((x, 0.175, -0.1), (0.2, 0.25, 1.42), uv_scale=0.8)
+    return m
+
+
+def car_pole():
+    """Штанга токосъёмника за сиденьем: стойка до 1.9 м и башмак, который когда-то скользил по сетке потолка."""
+    m = Mesh()
+    m.group = "pole"
+    m.add_box((0, 1.2, -0.72), (0.05, 1.4, 0.05), uv_scale=0.8)
+    m.group = "shoe"
+    m.add_box((0, 1.92, -0.72), (0.3, 0.05, 0.12), uv_scale=0.8)
+    return m
+
+
+def glove_gun():
+    """Пружинная пушка без перчатки, вдоль +Z от pivot: корпус, ствол, четыре витка пружины. Перчатка — boxing_glove."""
+    m = Mesh()
+    m.group = "housing"
+    m.add_box((0, 0, 0.2), (0.22, 0.2, 0.4), uv_scale=2.0)
+    m.group = "barrel"
+    m.add_cylinder((0, 0, 0.55), 0.07, 0.3, segments=10, axis="z")
+    m.group = "spring"
+    for i in range(4):
+        m.add_cylinder((0, 0, 0.73 + 0.05 * i), 0.09, 0.025, segments=10, axis="z")
+    return m
+
+
+def boxing_glove():
+    """Боксёрская перчатка на конце пружинной пушки: шар, большой палец, манжета; пальцы смотрят в +Z."""
+    m = Mesh()
+    m.group = "cuff"
+    m.add_cylinder((0, 0, 0.92), 0.12, 0.08, segments=10, axis="z")
+    m.group = "fist"
+    m.add_sphere((0, 0, 1.08), 0.16, segments=12, rings=6)
+    m.group = "thumb"
+    m.add_sphere((0.13, 0.03, 1.02), 0.07, segments=8, rings=4)
+    return m
+
+
+def tire_stack():
+    """Стопка из трёх старых шин 0.9 × 0.84 м: ограждение автодрома; верхняя сдвинута и чуть повёрнута."""
+    m = Mesh()
+    m.group = "tires"
+    for i, (dx, dz) in enumerate(((0, 0), (0.03, -0.02), (-0.05, 0.04))):
+        m.add_cylinder((dx, 0.14 + 0.28 * i, dz), 0.45, 0.26, segments=12, rot=(0, 15 * i, 0))
+    return m
+
+
 MODELS = {
+    "tire_stack": tire_stack,
+    "bumper_car": bumper_car,
+    "bumper_skirt": bumper_skirt,
+    "car_pole": car_pole,
+    "glove_gun": glove_gun,
+    "boxing_glove": boxing_glove,
     "cannon_barrel": cannon_barrel,
     "throne": throne,
     "throne_dais": throne_dais,

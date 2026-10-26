@@ -1,0 +1,83 @@
+# План сцены: Bumper Cars
+сцена: WorkshopMods/Bumper Cars/Data/MainScene.scene
+
+## Метрики
+- Пол: 23.9 × 15.9 м по габаритам, площадь пола 384 м², высота пола 1.50; диагональ 29 м ≈ 4.8 с бега
+- Движение (ModSettings): бег 6.0 м/с; прыжок выключен; ступенька 0.20 м
+- Раунд: 60.0 с × 1; тип игрока TwinStick
+- Занятость пола: стены 14.3%, низкие (перепрыгиваемые) 0.0%, опасность 0.0%, вода 0.0%, ускорители 0.0%, свободно 85.7%
+- Связность: из стартовых спавнов пешком достижимо 99% проходимой площади (без прыжков и jump pad)
+- Самая большая пустая площадка: круг радиусом 4.2 м с центром (7.2, -2.3) — 0.7 с бега от края до центра
+- Самый длинный прямой пробег без помех (игрок радиусом 0.4 м): 23 м вдоль X (z=-3.6), 15 м вдоль Z (x=-5.3) — 3.8 с бега
+- Плотность на 100 м² пола: препятствия 1.3, декор 1.3, точки интереса 0.3 (всего: 5 / 5 / 1); ограждение по краю: 28; объектов задника вне пола: 48
+- Ориентиры (самые высокие): Hill_4 13.1 м в (-38, 55) вне пола; Hill_2 12.9 м в (29, 58) вне пола; Hill_0 12.3 м в (69, 6) вне пола; Hill_10 12.3 м в (28, -61) вне пола; Rotor 11.7 м в (0, 44) вне пола; Hill_9 10.2 м в (-4, -70) вне пола
+- Движется (11): FloatingBarrel — Move Along Line 0.200596/с; FloatingBarrel — Move Along Line 0.304841/с; FloatingBarrel — Move Along Line 0.267252/с; FloatingBarrel — Move Along Line 0.210138/с; FloatingBarrel — Move Along Line 0.262387/с; FloatingBarrel — Move Along Line 0.213232/с; FloatingBarrel — Move Along Line 0.316947/с; FloatingBarrel — Move Along Line 0.263188/с; FloatingBarrel — Move Along Line 0.282626/с; SunkenCar — Move Along Line 0.18/с; Rotor — вращение 10°/с
+- Сетка ботов: нет (боты бегут к цели по прямой)
+- Пустые клетки 4×4 м (ни препятствия, ни декора, ни интереса): 4 из 24 (17%)
+
+## Карта клеток 4 м (север сверху; . пусто, d декор, o препятствие, * интерес, ~ опасность, # стена)
+```
+oooooo
+o.oo.o
+o.*o.o
+oooooo
+```
+
+## Легенда номеров на plan.png
+```
+  1 Backdrop/Apron  [decor] (0.0, 0.2, 15.5) 36.0×5.0 м, h -0.1..0.4
+  2 Backdrop/FallVolume  [kill] (0.0, -8.0, 0.0)
+  3 Backdrop/FerrisWheel  [decor] (0.0, 7.1, 44.0) 6.8×2.3 м, h -0.2..7.3
+  4 Backdrop/FerrisWheel/Rotor  [decor, mover] (0.0, 7.1, 44.0) 12.3×1.3 м, h 0.5..13.2
+   Backdrop/FloatingBarrel* ×9  [decor] x -25..28, z -13..10
+  5 Backdrop/OuterGround  [decor] (0.0, -0.4, 0.0) 180.0×180.0 м, h -0.4..-0.4
+  6 Backdrop/SunkenCar  [animator] (-16.5, -0.3, -3.0)
+  7 Backdrop/SunkenCar/Body  [decor] (-16.5, -0.3, -3.0) 1.7×1.5 м, h -0.5..0.9
+  8 Backdrop/SunkenCar/Pole  [decor] (-16.5, -0.3, -3.0) 1.2×0.5 м, h 0.5..1.5
+  9 Backdrop/SunkenCar/Skirt  [decor] (-16.5, -0.3, -3.0) 2.2×2.0 м, h -0.7..0.4
+ 10 Backdrop/TicketBooth_0  [decor] (-9.0, 0.4, 16.2) 2.9×3.5 м, h 0.3..2.8
+ 11 Backdrop/TicketBooth_1  [decor] (8.5, 0.4, 16.2) 3.2×3.7 м, h 0.3..2.8
+ 12 Player Spawnpoints/Spawn_Ring  [spawn] (0.0, 2.5, 0.0)
+ 13 World/ControlBooth  [wall] (0.0, 1.5, 0.0) 2.9×2.2 м, h 1.5..3.4
+ 14 World/CoreTires_E  [wall] (3.0, 1.5, 0.0) 1.0×0.9 м, h 1.5..2.3
+ 15 World/CoreTires_W  [wall] (-3.0, 1.5, 0.0) 1.0×0.9 м, h 1.5..2.3
+ 16 World/KillVolume  [kill] (0.0, -0.6, 0.0)
+ 17 World/Pond  [water] (0.0, 0.0, 0.0)
+ 18 World/Rink/Edge_0_0/Rail_south  [wall] (-10.0, 1.7, -7.9) 4.0×0.3 м, h 1.5..1.8
+ 19 World/Rink/Edge_0_0/Rail_west  [wall] (-11.9, 1.7, -6.0) 0.3×4.0 м, h 1.5..1.8
+ 20 World/Rink/Edge_0_1/Rail_west  [wall] (-11.9, 1.7, -1.0) 0.3×2.0 м, h 1.5..1.8
+ 21 World/Rink/Edge_0_1/Tires_0_1  [wall] (-11.0, 1.5, -0.8) 0.9×1.0 м, h 1.5..2.3
+ 22 World/Rink/Edge_0_2/Rail_west  [wall] (-11.9, 1.7, 2.0) 0.3×4.0 м, h 1.5..1.8
+ 23 World/Rink/Edge_0_3/Rail_north  [wall] (-10.0, 1.7, 7.9) 4.0×0.3 м, h 1.5..1.8
+ 24 World/Rink/Edge_0_3/Rail_west  [wall] (-11.9, 1.7, 6.0) 0.3×4.0 м, h 1.5..1.8
+ 25 World/Rink/Edge_0_3/Tires_0_3  [wall] (-11.0, 1.5, 7.0) 1.0×0.9 м, h 1.5..2.3
+ 26 World/Rink/Edge_1_0/Rail_south  [wall] (-6.0, 1.7, -7.9) 4.0×0.3 м, h 1.5..1.8
+ 27 World/Rink/Edge_1_0/Wreck_SW/Body  [wall] (-6.6, 1.5, -5.6) 1.6×1.7 м, h 1.6..2.5
+ 28 World/Rink/Edge_1_0/Wreck_SW/Pole  [decor] (-6.6, 1.5, -5.6) 0.5×0.7 м, h 1.6..3.0
+ 29 World/Rink/Edge_1_0/Wreck_SW/Skirt  [decor] (-6.6, 1.5, -5.6) 2.1×2.2 м, h 1.6..1.8
+ 30 World/Rink/Edge_1_3/Rail_north  [wall] (-7.0, 1.7, 7.9) 2.0×0.3 м, h 1.5..1.8
+ 31 World/Rink/Edge_1_3/Tires_1_3  [wall] (-7.2, 1.5, 7.0) 1.0×0.9 м, h 1.5..2.3
+ 32 World/Rink/Edge_2_0/Rail_south  [wall] (-2.0, 1.7, -7.9) 4.0×0.3 м, h 1.5..1.8
+ 33 World/Rink/Edge_2_0/Tires_2_0  [wall] (-1.5, 1.5, -6.9) 1.0×1.0 м, h 1.5..2.3
+ 34 World/Rink/Edge_2_3/Rail_north  [wall] (-2.0, 1.7, 7.9) 4.0×0.3 м, h 1.5..1.8
+ 35 World/Rink/Edge_3_0/Rail_south  [wall] (2.0, 1.7, -7.9) 4.0×0.3 м, h 1.5..1.8
+ 36 World/Rink/Edge_3_3/Rail_north  [wall] (2.0, 1.7, 7.9) 4.0×0.3 м, h 1.5..1.8
+ 37 World/Rink/Edge_3_3/Tires_3_3  [wall] (1.5, 1.5, 6.9) 1.0×1.0 м, h 1.5..2.3
+ 38 World/Rink/Edge_4_0/Rail_south  [wall] (7.0, 1.7, -7.9) 2.0×0.3 м, h 1.5..1.8
+ 39 World/Rink/Edge_4_0/Tires_4_0  [wall] (7.2, 1.5, -7.0) 1.0×0.9 м, h 1.5..2.3
+ 40 World/Rink/Edge_4_3/Rail_north  [wall] (6.0, 1.7, 7.9) 4.0×0.3 м, h 1.5..1.8
+ 41 World/Rink/Edge_4_3/Wreck_NE/Body  [wall] (6.6, 1.5, 5.6) 1.6×1.7 м, h 1.6..2.5
+ 42 World/Rink/Edge_4_3/Wreck_NE/Pole  [decor] (6.6, 1.5, 5.6) 0.5×0.6 м, h 2.2..3.6
+ 43 World/Rink/Edge_4_3/Wreck_NE/Skirt  [decor] (6.6, 1.5, 5.6) 2.1×2.2 м, h 1.6..1.8
+ 44 World/Rink/Edge_5_0/Rail_east  [wall] (11.9, 1.7, -6.0) 0.3×4.0 м, h 1.5..1.8
+ 45 World/Rink/Edge_5_0/Rail_south  [wall] (10.0, 1.7, -7.9) 4.0×0.3 м, h 1.5..1.8
+ 46 World/Rink/Edge_5_0/Tires_5_0  [wall] (11.0, 1.5, -7.0) 0.9×1.0 м, h 1.5..2.3
+ 47 World/Rink/Edge_5_1/Rail_east  [wall] (11.9, 1.7, -2.0) 0.3×4.0 м, h 1.5..1.8
+ 48 World/Rink/Edge_5_2/Rail_east  [wall] (11.9, 1.7, 1.0) 0.3×2.0 м, h 1.5..1.8
+ 49 World/Rink/Edge_5_2/Tires_5_2  [wall] (11.0, 1.5, 0.8) 0.9×1.0 м, h 1.5..2.3
+ 50 World/Rink/Edge_5_3/Rail_east  [wall] (11.9, 1.7, 6.0) 0.3×4.0 м, h 1.5..1.8
+ 51 World/Rink/Edge_5_3/Rail_north  [wall] (10.0, 1.7, 7.9) 4.0×0.3 м, h 1.5..1.8
+```
+
+Цвета: серый — пол; оранжевый — стены (выше прыжка); жёлтый — низкие препятствия (перепрыгнуть); зелёный — декор без коллизии; ярче = выше. Синий — вода; красная штриховка — триггер с Kill/Damage; оранжевая рамка — триггер скорости/гравитации; жёлтая пунктирная — прочие триггеры; зелёные точки — стартовые спавны, голубые квадраты — респаун; золотые — спавнеры/предметы; розовые круги — Mover/Simple Animator; розовый пунктир — пустая клетка. Голубые линии и точки — сетка ботов (AI Navigation Node; точка ближе к концу линии — направление связи; белые узлы — выше пола, на крышах); золотые кольца — точки, из которых спавнер выбирает место (OnTargets).
+Разрезы (elevation_north/south.png): взгляд от края пола через карту, ближние объекты ярче, розовая рамка — движется; белая — пол, белые засечки — края пола, зелёная — высота прыжка, голубая — граница «мешает идти» (1.5 м).

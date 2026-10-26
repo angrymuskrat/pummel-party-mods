@@ -229,7 +229,39 @@ def dirt(rng):
     return px
 
 
+def rink_plate(rng):
+    """Плита пола автодрома: рифлёный металл (ромбы ёлочкой, освещённые сверху-слева), ржавые пятна и стёртая
+    жёлто-чёрная кайма по краю — на плитке 4 м с тайлингом 1 кайма очерчивает каждую плиту при виде сверху."""
+    noise = fbm(rng, SIZE)
+    fine = value_noise(rng, SIZE, 128)
+    metal_dark, metal_light = (78, 84, 90), (128, 134, 138)
+    rust_dark, rust_light = (95, 48, 22), (150, 80, 35)
+    cell, border = 32, 18
+    px = []
+    for y in range(SIZE):
+        row = []
+        for x in range(SIZE):
+            c = mix(metal_dark, metal_light, 0.35 + 0.3 * noise[y][x] + 0.2 * fine[y][x])
+            cx, cy = x // cell, y // cell
+            u, v = (x % cell) / cell - 0.5, (y % cell) / cell - 0.5
+            s = 1 if (cx + cy) % 2 == 0 else -1   # ромбы чередуют наклон ±45°
+            a, b = (u + s * v) * 0.7071, (v - s * u) * 0.7071
+            if abs(a) / 0.36 + abs(b) / 0.09 < 1:
+                c = mix(c, (175, 178, 180) if b < 0 else (55, 58, 62), 0.45)
+            dist = min(x, y, SIZE - 1 - x, SIZE - 1 - y)
+            if dist < border and fine[y][x] > 0.3:   # кайма стёрта пятнами
+                stripe = ((x + y) // 14) % 2 == 0
+                c = mix(c, (205, 165, 30) if stripe else (30, 28, 25), 0.8)
+            n = noise[y][x]
+            if n > 0.56:
+                c = mix(c, mix(rust_light, rust_dark, fine[y][x]), min(1.0, (n - 0.56) / 0.18))
+            row.append(c)
+        px.append(row)
+    return px
+
+
 TEXTURES = {
+    "rink_plate": rink_plate,
     "rust_booth": rust_booth,
     "concrete": concrete,
     "rust_metal": rust_metal,

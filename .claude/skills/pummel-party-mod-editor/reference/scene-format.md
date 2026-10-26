@@ -126,6 +126,19 @@ LowPolyCube `cfc9faf9-3852-4dbe-803b-32cec4c94139`, LowPolyPlane `e314a70b-98f2-
   - `ModSimpleAnimator` включает `SetServerControlState`: на клиентах время = `SmoothServerTime`, движение синхронно; исходный поворот объекта сохраняется (`m_useBaseRotation`).
   - Слой поворота — `AngleAxis(кривая(t) · 360°, AnimationAxis)` поверх исходного поворота; слой позиции — `кривая(t) · AnimationAxis` от исходной позиции.
   - Пресет `Custom` (0) — произвольные слои, имя «Custom Animation» (`ModSimpleAnimations.CustomAnimation`); в `pmgen` — `anim_swing`.
+- **Ружьё и попадание** (прочитано 2026-10-25 для Bumper Cars, в игре не проверено):
+  - `ModItem` с `Weapon Type` = `Gun` стреляет из своей позиции; при виде сверху направление = поворот игрока (`SimpleModPlayer.GetShotDirection` → `transform.rotation`), в третьем лице — луч из камеры. Пауза между выстрелами — `Cooldown` предмета (`ModItem.UseItem`), `basicInfo.cooldown` в `WeaponInfo` её не задаёт.
+  - Луч hitscan берёт маску 3329 (слои 0, `Players` 8, `WorldGround` 10, `WorldWall` 11) с триггерами, но чужие триггеры и своего игрока пропускает (`WeaponComponent.DetermineHit`).
+  - Попадание шлёт `WeaponHitEvent` без проверки урона (`SendHitEvents`); урон 0 → `ChangeHealth(0)` — только вздрагивание. `Source` события — сам предмет-ружьё (`ModItem.RelayFireEvent`), не стрелок; ружьё висит на стрелке, поэтому `Towards Receiver` в `weaponHitTrigger` направлен от стрелка.
+  - Фильтр `weaponHitTrigger` — флаги `WeaponHitEventType` (`Melee` 1, `Projectile` 2), проверка `(HitType & m_hitType) != 0`.
+  - Бот с ружьём останавливается в 7 м от цели, если видит её, и стреляет, если до неё ≤ 0.8 · `range` (`GetAIInput`, `Update`). При `range` < 8.75 он встаёт и не стреляет.
+- **`Set Player Visual`** (`SimpleModPlayer.SetCustomPlayerModel`, прочитано 2026-10-25, в игре не проверено):
+  - Игра прячет модель игрока и спавнит префаб ребёнком игрока; все его не-триггерные коллайдеры делает триггерами на слое `Players` с тегом игрока — в них попадает ружьё.
+  - Рост `CharacterController` = высота габарита этих коллайдеров (вместе с pivot префаба), радиус = min(рост/2, полуширина, полудлина). Модель опускается так, что её y 0 стоит на полу. Без коллайдера в префабе рост 0.
+  - `Use Player Color` пишет цвет игрока в `tintColor` всех `Prop` префаба; props со своим материалом по подсказке редактора не меняются.
+  - Предметы перецепляются к трансформам префаба: `LeftHand`/`RightHand` — самый левый/правый трансформ, `Head` — самый высокий, `Back` — самый задний, `Body` — корень. `Held Position Offset` — локальная поза на слоте.
+  - `pmgen`: `act_set_player_visual`, `act_give_minigame_item`; образец выдачи предмета в `onFirstSpawnTrigger` — `InbuiltMods/Pummel Punch`.
+- **Камера вида сверху** (`SimpleModController.InitializeMinigame`, `SimpleModPlayerSettings.GetCameraPositionOffset`): при `Static` камера стоит в `Position Offset` + поворот на `View Angle` вокруг X · назад · `Distance` и смотрит под `View Angle`. `Camera Mode`: `Static` 0, `Follow` 1, `Follow All` 2. Угол обзора камеры в файлах не задан.
 
 ## Статус проверки в редакторе
 
