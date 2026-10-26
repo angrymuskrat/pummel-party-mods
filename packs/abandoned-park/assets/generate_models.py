@@ -618,8 +618,26 @@ def mascot_target():
     return m
 
 
+def cotton_candy():
+    """Облако сахарной ваты ~0.9 м: большой шар, 7 комков вокруг и один сверху, без палочки (её ставит сцена кубом другого
+    цвета). Pivot — низ облака на оси, куда входит палочка."""
+    import random
+    m = Mesh()
+    rng = random.Random("cotton-candy")
+    m.group = "fluff"
+    m.add_sphere((0, 0.42, 0), 0.36, segments=12, rings=6)
+    for k in range(7):
+        a = 2 * math.pi * k / 7 + rng.uniform(-0.2, 0.2)
+        y = 0.42 + rng.uniform(-0.12, 0.2)
+        r = rng.uniform(0.17, 0.24)
+        m.add_sphere((0.3 * math.cos(a), y, 0.3 * math.sin(a)), r, segments=8, rings=4)
+    m.add_sphere((0.03, 0.74, -0.02), 0.2, segments=8, rings=4)
+    return m
+
+
 MODELS = {
     "mascot_target": mascot_target,
+    "cotton_candy": cotton_candy,
     "cannon_barrel": cannon_barrel,
     "throne": throne,
     "throne_dais": throne_dais,

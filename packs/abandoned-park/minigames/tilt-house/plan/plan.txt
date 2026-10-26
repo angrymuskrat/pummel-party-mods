@@ -1,0 +1,106 @@
+# План сцены: Tilt House
+сцена: WorkshopMods/Tilt House/Data/MainScene.scene
+
+## Метрики
+- Пол: 16.0 × 16.0 м по габаритам, площадь пола 224 м², высота пола 2.50; диагональ 23 м ≈ 3.8 с бега
+- Движение (ModSettings): бег 6.0 м/с; прыжок 0.98 м вверх, ≈3.4 м в длину; ступенька 0.20 м
+- Раунд: 60.0 с × 1; тип игрока ThirdPerson
+- Занятость пола: стены 5.4%, низкие (перепрыгиваемые) 1.6%, опасность 0.0%, вода 0.0%, ускорители 0.0%, свободно 92.9%
+- Связность: из стартовых спавнов пешком достижимо 100% проходимой площади (без прыжков и jump pad)
+- Самая большая пустая площадка: круг радиусом 3.2 м с центром (4.1, 4.4) — 0.5 с бега от края до центра
+- Самый длинный прямой пробег без помех (игрок радиусом 0.4 м): 15 м вдоль X (z=-5.6), 15 м вдоль Z (x=-5.6) — 2.5 с бега
+- Плотность на 100 м² пола: препятствия 2.2, декор 23.2, точки интереса 0.4 (всего: 5 / 52 / 1); ограждение по краю: 2; объектов задника вне пола: 58
+- Ориентиры (самые высокие): Hill_0 13.5 м в (59, 1) вне пола; Rotor 10.7 м в (6, 34) вне пола; Hill_9 10.6 м в (-0, -66) вне пола; Chimney 8.2 м в (-8, 8) вне пола; Hill_10 8.2 м в (35, -50) вне пола; Hill_4 7.8 м в (-32, 53) вне пола
+- Движется (4): Pendulum — Custom Animation 0.5/с; BotGoal — вращение 20°/с; Rotor — вращение 10°/с; Sign — Custom Animation 0.35/с
+- Сетка ботов: 1 узлов, 0 направленных связей, без связей 1, целей Is AI Goal 1 (все боты пойдут к первой!)
+- Пустые клетки 4×4 м (ни препятствия, ни декора, ни интереса): 0 из 16 (0%)
+
+## Карта клеток 4 м (север сверху; . пусто, d декор, o препятствие, * интерес, ~ опасность, # стена)
+```
+oood
+od*d
+odoo
+oooo
+```
+
+## Легенда номеров на plan.png
+```
+  1 Backdrop/Booth_0  [decor] (13.0, 0.0, -4.0) 3.7×3.9 м, h -0.0..2.4
+  2 Backdrop/Booth_1  [decor] (-12.0, 0.0, 9.0) 3.3×3.8 м, h -0.1..2.4
+  3 Backdrop/Booth_2  [decor] (11.0, 0.0, 12.0) 3.9×3.7 м, h -0.0..2.4
+  4 Backdrop/FallVolume  [kill] (0.0, -8.0, 0.0)
+  5 Backdrop/FerrisWheel  [decor] (6.0, 7.1, 34.0) 6.8×2.3 м, h -0.2..7.3
+  6 Backdrop/FerrisWheel/Rotor  [decor, mover] (6.0, 7.1, 34.0) 12.3×1.3 м, h 0.5..13.2
+  7 Backdrop/Ground  [decor] (0.0, 0.0, 0.0) 140.0×140.0 м, h 0.0..0.0
+  8 Backdrop/Mascot  [decor] (-9.5, 0.0, -11.0) 1.8×1.6 м, h -0.1..2.1
+  9 Backdrop/Sign  [animator] (-3.0, 6.6, -11.7)
+ 10 Backdrop/Sign/Board  [decor] (-3.0, 5.7, -11.7) 3.3×0.1 м, h 4.8..6.6
+ 11 Backdrop/SignMast  [decor] (-3.0, 3.5, -11.5) 0.3×0.8 м, h -0.0..7.0
+ 12 Player Spawnpoints/Spawn_Ring  [spawn] (0.0, 3.5, 0.0)
+ 13 World/Acid  [water] (0.0, 0.3, 0.0)
+ 14 World/BotGoal  [mover] (0.0, 3.0, 0.0)
+   World/BotGoal/* ×1  [узлы сетки ботов — голубые точки на плане]
+ 15 World/FallenChandelier/Ball  [decor] (0.3, 0.4, -0.2) 1.2×1.4 м, h -0.1..1.0
+ 16 World/House/Chimney  [wall] (-8.5, 6.5, 8.5) 2.0×1.4 м, h 2.3..10.7
+ 17 World/House/Clock/Case  [wall] (3.1, 3.6, 7.7) 0.9×0.5 м, h 2.5..4.7
+ 18 World/House/Clock/Face  [decor] (3.1, 4.3, 7.4) 0.6×0.0 м, h 4.0..4.6
+ 19 World/House/FallenChair  [low] (-4.6, 2.8, -1.9) 1.0×0.9 м, h 2.5..3.0
+ 20 World/House/Pendulum  [animator] (3.0, 4.0, 7.4)
+ 21 World/House/Pendulum/Bob  [decor] (3.0, 3.2, 7.4) 0.2×0.1 м, h 3.1..3.3
+ 22 World/House/Pendulum/Rod  [decor] (3.0, 3.6, 7.4) 0.0×0.0 м, h 3.2..4.0
+ 23 World/House/Piano/Body  [wall] (4.8, 3.1, -2.0) 1.7×1.6 м, h 2.5..3.6
+ 24 World/House/Piano/Keys  [decor] (4.6, 3.2, -2.6) 1.2×0.6 м, h 3.2..3.3
+ 25 World/House/Piano/Lid  [decor] (4.9, 3.8, -1.8) 1.5×1.2 м, h 3.6..4.0
+ 26 World/House/Picture_E_-1/Canvas  [decor] (7.9, 4.0, -4.8) 0.0×0.6 м, h 3.7..4.3
+ 27 World/House/Picture_E_-1/Frame  [decor] (8.0, 4.0, -4.8) 0.1×0.8 м, h 3.6..4.4
+ 28 World/House/Picture_E_1/Canvas  [decor] (7.9, 4.3, 3.5) 0.0×0.8 м, h 4.1..4.6
+ 29 World/House/Picture_E_1/Frame  [decor] (8.0, 4.3, 3.5) 0.1×1.0 м, h 4.0..4.7
+ 30 World/House/Picture_N_-1/Canvas  [decor] (-2.8, 4.1, 7.9) 0.8×0.0 м, h 3.8..4.4
+ 31 World/House/Picture_N_-1/Frame  [decor] (-2.8, 4.1, 8.0) 1.0×0.1 м, h 3.7..4.5
+ 32 World/House/Picture_N_1/Canvas  [decor] (3.6, 4.2, 7.9) 1.1×0.0 м, h 3.8..4.5
+ 33 World/House/Picture_N_1/Frame  [decor] (3.6, 4.2, 8.0) 1.2×0.1 м, h 3.7..4.6
+ 34 World/House/Picture_S_-1/Canvas  [decor] (-3.4, 4.0, -7.9) 1.0×0.0 м, h 3.8..4.3
+ 35 World/House/Picture_S_-1/Frame  [decor] (-3.4, 4.0, -8.0) 1.2×0.1 м, h 3.7..4.4
+ 36 World/House/Picture_S_1/Canvas  [decor] (5.3, 4.2, -7.9) 0.8×0.0 м, h 3.8..4.6
+ 37 World/House/Picture_S_1/Frame  [decor] (5.3, 4.2, -8.0) 1.0×0.1 м, h 3.7..4.7
+ 38 World/House/Picture_W_-1/Canvas  [decor] (-7.9, 4.0, -4.8) 0.0×0.8 м, h 3.7..4.3
+ 39 World/House/Picture_W_-1/Frame  [decor] (-8.0, 4.0, -4.8) 0.1×1.0 м, h 3.6..4.4
+ 40 World/House/Picture_W_1/Canvas  [decor] (-7.9, 4.1, 3.4) 0.0×1.0 м, h 3.7..4.5
+ 41 World/House/Picture_W_1/Frame  [decor] (-8.0, 4.1, 3.4) 0.1×1.1 м, h 3.6..4.6
+ 42 World/House/Rug_-5_-7  [decor] (-5.0, 2.5, -7.0) 1.8×1.8 м, h 2.5..2.5
+ 43 World/House/Rug_-7_-7  [decor] (-7.0, 2.5, -7.0) 1.8×1.8 м, h 2.5..2.5
+ 44 World/House/Rug_-7_7  [decor] (-7.0, 2.5, 7.0) 1.7×1.7 м, h 2.5..2.5
+ 45 World/House/Rug_7_-7  [decor] (7.0, 2.5, -7.0) 1.8×1.8 м, h 2.5..2.5
+ 46 World/House/Rug_7_-5  [decor] (7.0, 2.5, -5.0) 1.8×1.8 м, h 2.5..2.5
+ 47 World/House/Rug_7_7  [decor] (7.0, 2.5, 7.0) 1.8×1.8 м, h 2.5..2.5
+ 48 World/House/Sofa/Arm_-1  [decor] (-2.9, 3.1, 4.6) 0.2×0.9 м, h 3.0..3.2
+ 49 World/House/Sofa/Arm_1  [decor] (-1.0, 3.1, 4.6) 0.2×0.9 м, h 3.0..3.2
+ 50 World/House/Sofa/Back  [wall] (-1.9, 3.4, 4.9) 2.0×0.2 м, h 3.0..3.7
+ 51 World/House/Sofa/Seat  [low] (-1.9, 2.8, 4.6) 2.0×0.9 м, h 2.5..3.0
+ 52 World/House/Splinter_0_0  [decor] (-6.4, 2.2, 5.5) 0.8×0.9 м, h 1.8..2.5
+ 53 World/House/Splinter_0_1  [decor] (-6.3, 2.2, 4.6) 0.6×0.9 м, h 1.8..2.5
+ 54 World/House/Splinter_1_0  [decor] (-3.8, 2.2, 6.8) 0.5×1.0 м, h 1.8..2.5
+ 55 World/House/Splinter_1_1  [decor] (-2.5, 2.2, 7.7) 1.0×0.8 м, h 1.9..2.4
+ 56 World/House/Splinter_2_0  [decor] (-1.2, 2.2, -0.2) 0.9×0.5 м, h 1.8..2.5
+ 57 World/House/Splinter_2_1  [decor] (-0.2, 2.2, -1.2) 0.5×1.0 м, h 1.8..2.5
+ 58 World/House/Splinter_3_0  [decor] (-0.2, 2.2, 0.8) 0.5×0.9 м, h 1.7..2.6
+ 59 World/House/Splinter_3_1  [decor] (-1.1, 2.2, 0.2) 1.0×0.4 м, h 1.9..2.4
+ 60 World/House/Splinter_4_0  [decor] (0.7, 2.2, -0.3) 1.0×0.6 м, h 1.9..2.4
+ 61 World/House/Splinter_4_1  [decor] (0.7, 2.2, -0.2) 1.0×0.5 м, h 1.8..2.5
+ 62 World/House/Splinter_5_0  [decor] (0.3, 2.2, 0.7) 0.6×1.0 м, h 1.8..2.5
+ 63 World/House/Splinter_5_1  [decor] (1.0, 2.2, 0.2) 1.0×0.3 м, h 1.9..2.4
+ 64 World/House/Splinter_6_0  [decor] (2.3, 2.2, -7.4) 0.7×0.9 м, h 1.8..2.5
+ 65 World/House/Splinter_6_1  [decor] (2.5, 2.2, -6.4) 0.8×0.7 м, h 1.8..2.5
+ 66 World/House/Splinter_7_0  [decor] (6.4, 2.2, 0.5) 0.8×0.9 м, h 1.8..2.5
+ 67 World/House/Splinter_7_1  [decor] (7.6, 2.2, 1.6) 0.8×0.8 м, h 1.7..2.6
+ 68 World/House/Trunk  [low] (1.9, 2.8, -4.5) 1.1×0.8 м, h 2.5..3.1
+ 69 World/House/Wall_E  [wall] (8.5, 3.6, 0.0) 1.0×16.0 м, h 2.1..5.1
+ 70 World/House/Wall_N  [wall] (0.0, 3.6, 8.5) 18.0×1.0 м, h 2.1..5.1
+ 71 World/House/Wall_S  [wall] (0.0, 3.6, -8.5) 18.0×1.0 м, h 2.1..5.1
+ 72 World/House/Wall_W  [wall] (-8.5, 3.6, 0.0) 1.0×16.0 м, h 2.1..5.1
+ 73 World/House/Wardrobe  [wall] (-7.6, 3.6, -3.0) 0.9×1.8 м, h 2.5..4.7
+ 74 World/KillVolume  [kill] (0.0, 0.1, 0.0)
+```
+
+Цвета: серый — пол; оранжевый — стены (выше прыжка); жёлтый — низкие препятствия (перепрыгнуть); зелёный — декор без коллизии; ярче = выше. Синий — вода; красная штриховка — триггер с Kill/Damage; оранжевая рамка — триггер скорости/гравитации; жёлтая пунктирная — прочие триггеры; зелёные точки — стартовые спавны, голубые квадраты — респаун; золотые — спавнеры/предметы; розовые круги — Mover/Simple Animator; розовый пунктир — пустая клетка. Голубые линии и точки — сетка ботов (AI Navigation Node; точка ближе к концу линии — направление связи; белые узлы — выше пола, на крышах); золотые кольца — точки, из которых спавнер выбирает место (OnTargets).
+Разрезы (elevation_north/south.png): взгляд от края пола через карту, ближние объекты ярче, розовая рамка — движется; белая — пол, белые засечки — края пола, зелёная — высота прыжка, голубая — граница «мешает идти» (1.5 м).
