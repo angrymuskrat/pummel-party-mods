@@ -1,0 +1,110 @@
+# План сцены: Mascot Range
+сцена: WorkshopMods/Mascot Range/Data/MainScene.scene
+
+## Метрики
+- Пол: 26.0 × 10.0 м по габаритам, площадь пола 260 м², высота пола 1.02; диагональ 28 м ≈ 4.6 с бега
+- Движение (ModSettings): бег 6.0 м/с; прыжок 1.20 м вверх, ≈4.8 м в длину; ступенька 0.20 м
+- Раунд: 60.0 с × 1; тип игрока ThirdPerson
+- Занятость пола: стены 6.3%, низкие (перепрыгиваемые) 0.7%, опасность 0.0%, вода 0.0%, ускорители 0.0%, свободно 93.0%
+- Связность: из стартовых спавнов пешком достижимо 98% проходимой площади (без прыжков и jump pad)
+- Самая большая пустая площадка: круг радиусом 5.0 м с центром (-0.1, -4.9) — 0.8 с бега от края до центра
+- Самый длинный прямой пробег без помех (игрок радиусом 0.4 м): 26 м вдоль X (z=-4.4), 9 м вдоль Z (x=-9.1) — 4.2 с бега
+- Плотность на 100 м² пола: препятствия 0.8, декор 6.5, точки интереса 4.2 (всего: 2 / 17 / 11); ограждение по краю: 16; объектов задника вне пола: 101
+- Ориентиры (самые высокие): Tent_0 14.7 м в (-20, 44) вне пола; Rotor 13.0 м в (14, 50) вне пола; Hill_2 10.7 м в (36, 70) вне пола; Hill_11 9.9 м в (61, -33) вне пола; Tent_1 9.9 м в (-8, 48) вне пола; Hill_6 9.4 м в (-74, 11) вне пола
+- Движется (8): FloatingBarrel ×5 — Move Along Line 0.3/с; Carriage — Move Along Line 0.166667/с; Carriage — Move Along Line 0.227273/с; Rotor — вращение 10°/с
+- Сетка ботов: 18 узлов, 48 направленных связей, без связей 0
+- Пустые клетки 4×4 м (ни препятствия, ни декора, ни интереса): 7 из 21 (33%)
+
+## Карта клеток 4 м (север сверху; . пусто, d декор, o препятствие, * интерес, ~ опасность, # стена)
+```
+o.....o
+od.dd.o
+ooooooo
+```
+
+## Легенда номеров на plan.png
+```
+   AI Navigation/* ×18  [узлы сетки ботов — голубые точки на плане]
+  1 Backdrop/FallVolume  [kill] (0.0, -8.0, 0.0)
+  2 Backdrop/FarShore  [decor] (0.0, -0.2, 45.0) 70.0×10.0 м, h -1.0..0.6
+  3 Backdrop/FerrisWheel  [decor] (14.0, 7.9, 50.0) 6.8×2.3 м, h 0.7..8.1
+  4 Backdrop/FerrisWheel/Rotor  [decor, mover] (14.0, 7.9, 50.0) 12.3×1.3 м, h 1.3..14.0
+  5 Backdrop/GiantMascot  [decor] (0.0, 0.6, 42.0) 10.4×4.0 м, h 0.6..10.3
+  6 Backdrop/OuterGround  [decor] (0.0, -1.3, 10.0) 180.0×180.0 м, h -1.3..-1.3
+  7 Backdrop/Tent_0  [decor] (-20.0, 7.8, 44.0) 25.7×25.0 м, h 7.8..15.7
+  8 Backdrop/Tent_1  [decor] (-8.0, 5.4, 48.0) 17.8×17.3 м, h 5.4..10.9
+  9 Decor/Arch/Beam  [decor] (0.0, 5.3, 0.3) 27.0×0.4 м, h 4.9..5.7
+ 10 Decor/Arch/Post_E  [wall] (13.3, 2.8, 0.3) 0.4×0.4 м, h 0.0..5.5
+ 11 Decor/Arch/Post_W  [wall] (-13.3, 2.8, 0.3) 0.4×0.4 м, h 0.0..5.5
+ 12 Decor/Barrel_0  [low] (-4.0, 1.0, -9.2) 0.8×0.8 м, h 1.0..2.0
+ 13 Decor/Barrel_1  [low] (4.0, 1.0, -9.2) 0.9×0.9 м, h 1.0..2.0
+ 14 Decor/Debris_0  [decor] (-1.7, 1.1, -9.4) 0.5×0.4 м, h 0.8..1.3
+ 15 Decor/Debris_1  [decor] (-5.0, 1.1, -8.9) 0.6×0.6 м, h 0.8..1.4
+ 16 Decor/Debris_2  [decor] (9.9, 1.1, -9.4) 0.6×0.6 м, h 0.8..1.3
+ 17 Decor/Fence/Back_0  [wall] (-11.5, 1.0, -9.8) 3.1×0.1 м, h 1.0..2.2
+ 18 Decor/Fence/Back_1  [wall] (-8.5, 1.0, -9.8) 3.1×0.1 м, h 1.0..2.2
+ 19 Decor/Fence/Back_2  [wall] (-5.5, 1.0, -9.8) 3.1×0.1 м, h 1.0..2.2
+ 20 Decor/Fence/Back_3  [wall] (-2.5, 1.0, -9.8) 3.1×0.1 м, h 1.0..2.2
+ 21 Decor/Fence/Back_4  [wall] (0.5, 1.0, -9.8) 3.1×0.1 м, h 1.0..2.2
+ 22 Decor/Fence/Back_5  [wall] (3.5, 1.0, -9.8) 3.1×0.1 м, h 1.0..2.2
+ 23 Decor/Fence/Back_6  [wall] (6.5, 1.0, -9.8) 3.1×0.1 м, h 1.0..2.2
+ 24 Decor/Fence/Back_7  [wall] (9.5, 1.0, -9.8) 3.1×0.1 м, h 1.0..2.2
+ 25 Decor/Fence/Side_E_0  [wall] (12.8, 1.0, -8.5) 0.1×3.1 м, h 1.0..2.2
+ 26 Decor/Fence/Side_E_1  [wall] (12.8, 1.0, -6.5) 0.1×3.1 м, h 1.0..2.2
+ 27 Decor/Fence/Side_E_2  [decor] (12.8, 0.0, -3.5) 0.1×3.1 м, h 0.0..1.2
+ 28 Decor/Fence/Side_E_3  [decor] (12.8, 0.0, -0.5) 0.1×3.1 м, h 0.0..1.2
+ 29 Decor/Fence/Side_W_0  [wall] (-12.8, 1.0, -8.5) 0.1×3.1 м, h 1.0..2.2
+ 30 Decor/Fence/Side_W_1  [wall] (-12.8, 1.0, -6.5) 0.1×3.1 м, h 1.0..2.2
+ 31 Decor/Fence/Side_W_2  [decor] (-12.8, 0.0, -3.5) 0.1×3.1 м, h 0.0..1.2
+ 32 Decor/Fence/Side_W_3  [decor] (-12.8, 0.0, -0.5) 0.1×3.1 м, h 0.0..1.2
+ 33 Decor/FloatingBarrel_0  [decor, animator] (-15.0, -1.2, 6.0) 0.9×1.1 м, h -1.7..-0.8
+ 34 Decor/FloatingBarrel_1  [decor, animator] (14.0, -1.2, 13.0) 1.2×1.3 м, h -1.7..-0.8
+ 35 Decor/FloatingBarrel_2  [decor, animator] (-6.0, -1.2, 30.0) 1.2×1.3 м, h -1.7..-0.8
+ 36 Decor/FloatingBarrel_3  [decor, animator] (17.0, -1.2, 31.0) 0.9×1.1 м, h -1.7..-0.8
+ 37 Decor/FloatingBarrel_4  [decor, animator] (-18.0, -1.2, 22.0) 1.2×1.1 м, h -1.7..-0.8
+ 38 Decor/Lamppost_0  [wall] (-12.6, 0.0, -0.6) 1.3×0.7 м, h -0.0..5.0
+ 39 Decor/Lamppost_1  [wall] (12.6, 0.0, -0.6) 1.5×0.9 м, h 0.0..5.0
+ 40 Decor/SunkenCart  [decor] (10.0, -1.4, 33.0) 2.6×2.7 м, h -2.8..-1.1
+ 41 Midground/AmmoCrate_0  [decor] (-6.5, 0.3, -4.4) 1.5×1.0 м, h 0.0..0.6
+ 42 Midground/AmmoCrate_1  [decor] (-0.1, 0.3, -4.4) 1.5×1.0 м, h 0.0..0.6
+ 43 Midground/AmmoCrate_2  [decor] (6.8, 0.3, -4.4) 1.5×1.0 м, h 0.0..0.6
+ 44 Midground/Booth_0  [wall] (-11.0, 1.0, -8.4) 2.9×3.5 м, h 1.0..3.4
+ 45 Midground/Booth_1  [wall] (11.0, 1.0, -8.4) 2.9×3.5 м, h 1.0..3.4
+ 46 Player Spawnpoints/Respawn_0  [respawn] (-8.0, 2.0, -8.0)
+ 47 Player Spawnpoints/Respawn_1  [respawn] (0.0, 2.0, -8.0)
+ 48 Player Spawnpoints/Respawn_2  [respawn] (8.0, 2.0, -8.0)
+ 49 Player Spawnpoints/Spawn_Line  [spawn] (0.0, 1.0, -2.5)
+ 50 Targets/Row_Back/Carriage  [animator] (-4.0, 1.6, 18.0)
+ 51 Targets/Row_Back/Carriage/Target_0  [trigger] (-12.0, 1.6, 18.0)
+ 52 Targets/Row_Back/Carriage/Target_1  [trigger] (-8.0, 1.6, 18.0)
+ 53 Targets/Row_Back/Carriage/Target_2  [trigger] (-4.0, 1.6, 18.0)
+ 54 Targets/Row_Back/Carriage/Target_3  [trigger] (0.0, 1.6, 18.0)
+ 55 Targets/Row_Back/Carriage/Target_4  [trigger] (4.0, 1.6, 18.0)
+ 56 Targets/Row_Back/Carriage/Target_0/Tin  [decor] (-12.0, 1.6, 18.0) 0.8×0.1 м, h 1.6..2.8
+ 57 Targets/Row_Back/Carriage/Target_1/Tin  [decor] (-8.0, 1.6, 18.0) 0.8×0.1 м, h 1.6..2.8
+ 58 Targets/Row_Back/Carriage/Target_2/Tin  [decor] (-4.0, 1.6, 18.0) 0.8×0.1 м, h 1.6..2.8
+ 59 Targets/Row_Back/Carriage/Target_3/Tin  [decor] (0.0, 1.6, 18.0) 0.8×0.1 м, h 1.6..2.8
+ 60 Targets/Row_Back/Carriage/Target_4/Tin  [decor] (4.0, 1.6, 18.0) 0.8×0.1 м, h 1.6..2.8
+ 61 Targets/Row_Back/Rail  [decor] (0.0, 1.5, 18.0) 28.0×0.3 м, h 1.4..1.6
+ 62 Targets/Row_Ducks/Carriage  [animator] (-3.0, 0.4, 10.0)
+ 63 Targets/Row_Ducks/Carriage/Target_0  [trigger] (-12.0, 0.4, 10.0)
+ 64 Targets/Row_Ducks/Carriage/Target_1  [trigger] (-8.4, 0.4, 10.0)
+ 65 Targets/Row_Ducks/Carriage/Target_2  [trigger] (-4.8, 0.4, 10.0)
+ 66 Targets/Row_Ducks/Carriage/Target_3  [trigger] (-1.2, 0.4, 10.0)
+ 67 Targets/Row_Ducks/Carriage/Target_4  [trigger] (2.4, 0.4, 10.0)
+ 68 Targets/Row_Ducks/Carriage/Target_5  [trigger] (6.0, 0.4, 10.0)
+ 69 Targets/Row_Ducks/Carriage/Target_0/Tin  [decor] (-12.0, 0.4, 10.0) 1.1×0.1 м, h 0.4..2.0
+ 70 Targets/Row_Ducks/Carriage/Target_1/Tin  [decor] (-8.4, 0.4, 10.0) 1.1×0.1 м, h 0.4..2.0
+ 71 Targets/Row_Ducks/Carriage/Target_2/Tin  [decor] (-4.8, 0.4, 10.0) 1.1×0.1 м, h 0.4..2.0
+ 72 Targets/Row_Ducks/Carriage/Target_3/Tin  [decor] (-1.2, 0.4, 10.0) 1.1×0.1 м, h 0.4..2.0
+ 73 Targets/Row_Ducks/Carriage/Target_4/Tin  [decor] (2.4, 0.4, 10.0) 1.1×0.1 м, h 0.4..2.0
+ 74 Targets/Row_Ducks/Carriage/Target_5/Tin  [decor] (6.0, 0.4, 10.0) 1.1×0.1 м, h 0.4..2.0
+ 75 Targets/Row_Ducks/Rail  [decor] (0.0, 0.3, 10.0) 28.0×0.3 м, h 0.2..0.4
+ 76 World/Acid  [water] (0.0, -1.0, 20.0)
+ 77 World/AcidBed  [decor] (0.0, -3.1, 20.0) 90.0×70.0 м, h -3.6..-2.6
+ 78 World/Counter  [decor] (0.0, -0.1, 0.3) 26.0×0.6 м, h -1.0..0.9
+ 79 World/KillVolume  [kill] (0.0, -1.9, 20.0)
+```
+
+Цвета: серый — пол; оранжевый — стены (выше прыжка); жёлтый — низкие препятствия (перепрыгнуть); зелёный — декор без коллизии; ярче = выше. Синий — вода; красная штриховка — триггер с Kill/Damage; оранжевая рамка — триггер скорости/гравитации; жёлтая пунктирная — прочие триггеры; зелёные точки — стартовые спавны, голубые квадраты — респаун; золотые — спавнеры/предметы; розовые круги — Mover/Simple Animator; розовый пунктир — пустая клетка. Голубые линии и точки — сетка ботов (AI Navigation Node; точка ближе к концу линии — направление связи; белые узлы — выше пола, на крышах); золотые кольца — точки, из которых спавнер выбирает место (OnTargets).
+Разрезы (elevation_north/south.png): взгляд от края пола через карту, ближние объекты ярче, розовая рамка — движется; белая — пол, белые засечки — края пола, зелёная — высота прыжка, голубая — граница «мешает идти» (1.5 м).

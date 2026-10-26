@@ -172,7 +172,18 @@ def cannon_boom():
     return add(thump, noise_burst(0.7, 0.004, 6000, 150, rng, amp=1.4))
 
 
+def target_clang():
+    """Удар пули по жестяной мишени 0.45 с: негармонические обертоны 520 / 1310 / 2270 / 3480 Гц с разным спадом
+    (жесть звенит, а не поёт) + щелчок шума в начале."""
+    import random
+    rng = random.Random("target_clang")
+    return add(tone(520, 0.45, 9, 0.7, attack=0.001), tone(1310, 0.45, 12, 0.6, attack=0.001),
+               tone(2270, 0.3, 18, 0.4, attack=0.001), tone(3480, 0.2, 26, 0.25, attack=0.001),
+               noise_burst(0.05, 0.001, 8000, 2000, rng, amp=0.6))
+
+
 SOUNDS = {
+    "target_clang": target_clang,
     "cannon_boom": cannon_boom,
     "ticket_pickup": ticket_pickup,
     "sweep": sweep,

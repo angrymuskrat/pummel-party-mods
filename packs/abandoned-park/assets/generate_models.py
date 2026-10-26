@@ -598,7 +598,28 @@ def cannon_barrel():
     return m
 
 
+def mascot_target():
+    """Жестяная мишень тира — голова маскота: диск-лицо r 0.45 и два уха r 0.18 толщиной 6 см в плоскости XY
+    (лицом к −Z и +Z), глаза-кнопки и нос на стороне −Z (к стрелкам), под головой стойка 0.6 м. Pivot — низ стойки,
+    центр лица на y 1.05."""
+    m = Mesh()
+    cy = 1.05
+    m.group = "face"
+    m.add_cylinder((0, cy, 0), 0.45, 0.06, segments=20, axis="z")
+    m.group = "ears"
+    for sign in (-1, 1):
+        m.add_cylinder((sign * 0.36, cy + 0.36, 0), 0.18, 0.06, segments=12, axis="z")
+    m.group = "eyes"
+    for sign in (-1, 1):
+        m.add_cylinder((sign * 0.16, cy + 0.1, -0.05), 0.07, 0.04, segments=10, axis="z")
+    m.add_cylinder((0, cy - 0.08, -0.05), 0.06, 0.04, segments=10, axis="z")
+    m.group = "post"
+    m.add_box((0, 0.3, 0), (0.08, 0.6, 0.06))
+    return m
+
+
 MODELS = {
+    "mascot_target": mascot_target,
     "cannon_barrel": cannon_barrel,
     "throne": throne,
     "throne_dais": throne_dais,

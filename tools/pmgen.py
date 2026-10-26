@@ -40,6 +40,9 @@ LAYER_WORLD_WALL = 11     # так помечены LowPolyCube в шаблон�
 PROP_CUBE = "cfc9faf9-3852-4dbe-803b-32cec4c94139"     # LowPolyCube
 PROP_PLANE = "e314a70b-98f2-4459-9214-ef4da97b4e6d"    # LowPolyPlane (шаблон Minimal Third Person)
 PROP_SPHERE = "c7d7ef4d-4e66-4b08-b91a-d5b0190b74ee"   # LowPolySphere
+# винтовка и прицел из префаба Sniper шаблона Third Person Shooter (Assets/Prefabs/Sniper.pfab, прицел — ребёнок Scope)
+PROP_SNIPER = "64a1e53d-b947-428d-b1b8-565aea6a37c6"
+PROP_SNIPER_SCOPE = "10dba6a0-d7c6-4a5c-9e74-b0e22846edbc"
 
 
 class Collision:      # PropCollisionType
@@ -72,6 +75,14 @@ class SpawnerLocation:  # ModSpawnerLocationType (flags)
 
 class ItemType:       # ModItemType
     CARRIED, WEAPON, WORN, PICKUP = 0, 1, 2, 3
+
+
+class WeaponUsage:    # WeaponItemUsage (ModItem.WeaponType)
+    MELEE, GUN = 0, 1
+
+
+class WeaponHitKind:  # WeaponHitEventType (flags): фильтр m_hitType у weaponHitTrigger; 0 — не срабатывает ни на что
+    MELEE, PROJECTILE = 1, 2
 
 
 class Targets:        # ModActionTargets (flags)
@@ -217,7 +228,8 @@ def _targets(flags: int, guids: list[str] | None):
 ACTION_CLASS = {Action.KILL: "KillAction", Action.CHANGE_HEALTH: "ChangeHealthAction", Action.CHANGE_SCORE: "ChangeScoreAction",
                 Action.SPAWN_EFFECT: "SpawnEffectAction", Action.PLAY_SOUND: "PlaySoundAction", Action.SHOW_MESSAGE: "ShowMessageAction",
                 Action.CHANGE_VELOCITY: "ChangeVelocityAction", Action.MODIFY_PLAYER: "ModifyPlayerAction",
-                Action.WAIT: "WaitAction", Action.SPAWN_PREFAB: "SpawnPrefabAction"}
+                Action.WAIT: "WaitAction", Action.SPAWN_PREFAB: "SpawnPrefabAction",
+                Action.GIVE_MINIGAME_ITEM: "GiveMinigameItemAction"}
 
 
 def _action(type_id: int, flags: int = Targets.SOURCE, targets: list[str] | None = None, **fields) -> tuple[int, dict]:
@@ -295,6 +307,12 @@ def act_spawn_prefab(prefab_guids: list[str], flags=Targets.RECEIVER, targets=No
                    m_prefabs=[{"m_assetGUID": {"serializedGuid": g}} for g in prefab_guids],
                    m_spawnAtPosition=False, m_position=v((0, 0, 0)), m_rotation=v((0, 0, 0)), m_parentToTarget=False,
                    m_targetPositionOffset=v(offset), m_targetRotationOffset=v((0, 0, 0)))
+
+
+def act_give_minigame_item(prefab_guid: str, flags=Targets.RECEIVER, targets=None):
+    """Give Minigame Item Action: префаб с Item Component на корне. В шаблоне Third Person Shooter так выдаётся
+    MachineGunItem в onFirstSpawnTrigger (m_targetFlags 2 — сам игрок). Плейтест 2026-10-26 (общий отчёт пользователя: «всё работает»): Mascot Range."""
+    return _action(Action.GIVE_MINIGAME_ITEM, flags, targets, m_item={"m_assetGUID": {"serializedGuid": prefab_guid}})
 
 
 def act_set_color(color, flags=Targets.ADVANCED, targets: list[str] | None = None):
@@ -580,8 +598,8 @@ class Obj:
     def item(self, item_type=ItemType.PICKUP, visual_prefab_guid: str | None = None, on_pickup: list | None = None,
              on_drop=None, on_use=None, while_held=None, unique_pickup=False, priority=0, can_drop=True,
              disappear_when_dropped=False, auto_drop=False, drop_after=10.0, drop_on_death=True,
-             slot=0, hold_anim=0, cooldown=1.0, weapon_info: dict | None = None) -> Obj:
-        """weapon_info — полный JSON ModWeaponInfo (копия DEFAULT_WEAPON_INFO с правками); WeaponType 0 = Melee."""
+             slot=0, hold_anim=0, cooldown=1.0, weapon_info: dict | None = None, weapon_type=WeaponUsage.MELEE) -> Obj:
+        """weapon_info — полный JSON ModWeaponInfo (копия DEFAULT_WEAPON_INFO с правками); weapon_type — WeaponUsage."""
         self._comp("ModItem", [
             ("ItemType", enc_i32(item_type)),
             ("WeaponInfo", enc_json(weapon_info or DEFAULT_WEAPON_INFO)),
@@ -601,7 +619,7 @@ class Obj:
             ("PickupSoundType", enc_i32(0)),
             ("UniquePickup", enc_bool(unique_pickup)),
             ("ItemPickupPriority", enc_i32(priority)),
-            ("WeaponType", enc_i32(0)),
+            ("WeaponType", enc_i32(weapon_type)),
             ("Cooldown", enc_f32(cooldown)),
             ("HasLimitedUses", enc_bool(False)),
             ("DropAfterUses", enc_i32(3)),
