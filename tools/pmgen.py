@@ -261,6 +261,8 @@ def act_stun(duration=1.0, flags=Targets.SOURCE, targets=None):
 
 
 def act_set_gravity(vec=(0, -9.81, 0)):
+    """Set Gravity: Physics.gravity и SetCustomGravity всем игрокам. Игрок получает вектор целиком, × playerGravity / 9.81
+    (горизонталь — боковая тяга, работает порогом против Acceleration/Deceleration: scene-format.md, «Гравитация»)."""
     return _action(Action.SET_GRAVITY, None, None, m_value={"x": vec[0], "y": vec[1], "z": vec[2]})
 
 

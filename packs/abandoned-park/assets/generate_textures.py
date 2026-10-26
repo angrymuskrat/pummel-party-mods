@@ -3,6 +3,7 @@
 Запуск:  python generate_textures.py [имя ...]
 Результат в textures/<имя>.png, 512×512 RGB. Сид фиксирован — перегенерация даёт тот же файл.
 """
+import math
 import os
 import random
 import struct
@@ -229,7 +230,59 @@ def dirt(rng):
     return px
 
 
+def floorboards(rng):
+    """Паркет кривого дома: доски по 64 px вдоль Y со стыками вразбег, волокна, тёмные щели и вытертые пятна."""
+    noise = fbm(rng, SIZE)
+    fine = value_noise(rng, SIZE, 256)
+    plank_w = 64
+    seams = [rng.randrange(SIZE) for _ in range(SIZE // plank_w)]          # стык доски поперёк — свой у каждого ряда
+    tones = [rng.uniform(0.8, 1.15) for _ in range(SIZE // plank_w * 2)]   # оттенок доски до и после стыка
+    light, dark = (150, 104, 62), (92, 60, 34)
+    px = []
+    for y in range(SIZE):
+        row = []
+        for x in range(SIZE):
+            col = x // plank_w
+            part = 0 if y < seams[col] else 1
+            grain = 0.5 + 0.5 * math.sin((x % plank_w) * 0.9 + 6 * fine[y][x] + col)
+            c = mix(dark, light, 0.35 + 0.4 * grain * fine[y][x] + 0.25 * noise[y][x])
+            c = tuple(v * tones[2 * col + part] for v in c)
+            if x % plank_w < 2 or abs(y - seams[col]) < 2:
+                c = mix(c, (35, 22, 12), 0.8)
+            if noise[y][x] > 0.6:                                         # вытертые до серого места
+                c = mix(c, (140, 132, 118), min(0.6, (noise[y][x] - 0.6) * 3))
+            row.append(c)
+        px.append(row)
+    return px
+
+
+def wallpaper(rng):
+    """Выцветшие обои: вертикальные полосы бордо/охра с ромбами, разводы сырости снизу и потёки."""
+    noise = fbm(rng, SIZE)
+    fine = value_noise(rng, SIZE, 128)
+    wine, ochre, cream = (120, 40, 52), (190, 150, 80), (215, 196, 160)
+    px = []
+    for y in range(SIZE):
+        row = []
+        for x in range(SIZE):
+            u = x % 128
+            c = wine if u < 40 else (ochre if u < 52 or u >= 116 else cream)
+            if 52 <= u < 116:                                             # ромбы в светлой полосе
+                du, dv = abs(u - 84), abs((y % 64) - 32)
+                if du + dv < 14:
+                    c = mix(c, wine, 0.55)
+            c = tuple(v * (0.8 + 0.2 * fine[y][x]) for v in c)
+            damp = max(0.0, (y / SIZE) * 1.3 - 0.75 + 0.5 * (noise[y][x] - 0.5))   # сырость поднимается от пола (низ картинки)
+            c = mix(c, (95, 85, 55), min(0.7, damp * 2))
+            row.append(c)
+        px.append(row)
+    drips(rng, SIZE, 18, px, 0.4)
+    return px
+
+
 TEXTURES = {
+    "floorboards": floorboards,
+    "wallpaper": wallpaper,
     "rust_booth": rust_booth,
     "concrete": concrete,
     "rust_metal": rust_metal,
