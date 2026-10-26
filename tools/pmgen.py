@@ -74,6 +74,10 @@ class ItemType:       # ModItemType
     CARRIED, WEAPON, WORN, PICKUP = 0, 1, 2, 3
 
 
+class ItemSlot:       # ModItemSlot
+    DEFAULT, LEFT_HAND, RIGHT_HAND, HEAD, BODY, BACK = range(6)
+
+
 class Targets:        # ModActionTargets (flags)
     SOURCE = 1    # кто вызвал событие (вошедший в триггер, подобравший предмет)
     RECEIVER = 2  # объект, на котором стоит компонент
@@ -217,7 +221,8 @@ def _targets(flags: int, guids: list[str] | None):
 ACTION_CLASS = {Action.KILL: "KillAction", Action.CHANGE_HEALTH: "ChangeHealthAction", Action.CHANGE_SCORE: "ChangeScoreAction",
                 Action.SPAWN_EFFECT: "SpawnEffectAction", Action.PLAY_SOUND: "PlaySoundAction", Action.SHOW_MESSAGE: "ShowMessageAction",
                 Action.CHANGE_VELOCITY: "ChangeVelocityAction", Action.MODIFY_PLAYER: "ModifyPlayerAction",
-                Action.WAIT: "WaitAction", Action.SPAWN_PREFAB: "SpawnPrefabAction"}
+                Action.WAIT: "WaitAction", Action.SPAWN_PREFAB: "SpawnPrefabAction",
+                Action.DROP_MINIGAME_ITEM: "DropMinigameItemAction"}
 
 
 def _action(type_id: int, flags: int = Targets.SOURCE, targets: list[str] | None = None, **fields) -> tuple[int, dict]:
@@ -271,6 +276,13 @@ def act_modify_player_speed(multiplier: float, flags=Targets.SOURCE, targets=Non
     (SimpleModPlayer.SetMovementSpeedMultiplier); при респауне игра сама возвращает 1. Плейтест 2026-10-25 (общий отчёт пользователя: «всё работает»): Mascot Throne."""
     return _action(Action.MODIFY_PLAYER, flags, targets, m_playerActionType=0, m_movementSpeed=float(multiplier),
                    m_gravity={"x": 0.0, "y": -9.81, "z": 0.0})
+
+
+def act_drop_minigame_item(slot=ItemSlot.RIGHT_HAND, drop_all=False, flags=Targets.SOURCE, targets=None):
+    """Drop Minigame Item Action: выполняет только сервер (ServerNoRelay) → SimpleModPlayer.ForceDropItemInSlot →
+    BeginDropItem — бросок вперёд-вверх 6 м/с плюс скорость игрока, CanBeDropped не проверяется (DropMinigameItemAction,
+    декомпиляция 2026-10-25). Не проверено в игре."""
+    return _action(Action.DROP_MINIGAME_ITEM, flags, targets, m_itemSlot=slot, m_dropAllItems=bool(drop_all))
 
 
 def act_set_placement(flags=Targets.SOURCE, targets=None):
