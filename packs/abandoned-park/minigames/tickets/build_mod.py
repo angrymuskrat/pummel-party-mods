@@ -45,6 +45,12 @@ JACKPOT_AT = 40.0             # с этой секунды у пруда поя�
 JACKPOT_VALUE = 3
 JACKPOT_DELAY = (8.0, 12.0)
 JACKPOT_POINTS = ((2.0, -0.9), (5.0, 4.0), (-5.0, 4.0), (1.5, 8.9))   # у кромки пруда: риск рядом с наградой
+# бэклог 2026-10-27: три удара ради +1 и ¼ чужих билетов не окупались, люди не дрались. Теперь два удара и убийце +1
+# сверх оранжевого билета. Source события смерти — тот, чей удар добил (ConfirmHitEvent → ChangeHealth(damageSource));
+# смерть в пруду идёт через Kill без источника (m_lastSourceOfPlayerDamage ставит только WeaponComponent), Source там
+# пуст, и Change Score на него ничего не делает — столкнувший в пруд награды не получает
+HEALTH = 2
+KILL_REWARD = 1
 
 
 def booth_angle(i):
@@ -60,10 +66,11 @@ def build(name: str, workshop: str = WORKSHOP) -> str:
     mod = Mod(name, description="Rusted Park: collect tickets in the ruined fairground. / Билетики: собери больше всех билетов.",
               round_duration=60, end_conditions=EndCondition.TIMER, placement=Placement.MOST_POINTS,
               settings_overrides={"respawnEnabled": True, "respawnTime": 3.0, "respawnInvulnerableTime": 2.0,
-                                  "canPunch": True, "useHealth": True, "health": 3, "punchDamage": 1, "showHealthBar": True},
-              # смерть (3 удара или пруд) отнимает ⌈¼⌉ билетов: score·3 и деление нацело на 4 (Divide = (int)(i / 4f))
-              # дают ⌊3s/4⌋ = s − ⌈s/4⌉; Receiver в событии смерти — умерший
+                                  "canPunch": True, "useHealth": True, "health": HEALTH, "punchDamage": 1, "showHealthBar": True},
+              # смерть (HEALTH ударов или пруд) отнимает ⌈¼⌉ билетов: score·3 и деление нацело на 4 (Divide = (int)(i / 4f))
+              # дают ⌊3s/4⌋ = s − ⌈s/4⌉; Receiver в событии смерти — умерший, Source — убийца (см. KILL_REWARD)
               player_triggers={"onDeathTrigger": [
+                  act_change_score(KILL_REWARD, Op.ADD, Targets.SOURCE),
                   act_change_score(3, Op.MUL, Targets.RECEIVER),
                   act_change_score(4, Op.DIV, Targets.RECEIVER),
                   act_show_message("-1/4 билетов / lost 1/4 of tickets", 2.0, MsgTarget.TARGET, Targets.RECEIVER)]})

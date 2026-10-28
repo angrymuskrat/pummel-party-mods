@@ -61,6 +61,11 @@ STAGES = [{"near": (0.0, 0.0), "far": (0.0, 0.0), "size": 1.0},
 NEAR_ANGLE = 15.4     # ближние мишени — на дуге боковых пушек под этим углом от их оси
 PUNCH_PUSH, PUNCH_LIFT = 6.0, 3.0
 RESPAWN = 2.0
+# дефицит яблочка (бэклог 2026-10-27): игра была параллельной — соперник не нужен. Теперь яблочко берёт первый, и на
+# BULLSEYE_LOCK секунд зона и краска яблочка пропадают (Disable After Triggered; таймер плота включает их обратно) —
+# следующие получают только внешние квадраты, и за плот появляется гонка. Периоды качания не трогал: с плотами 3.3 с
+# любое ускорение ×0.75…0.85 даёт биения 30–150 с, дольше этапа, и фаза «ствол — плот» застывает (windows.py)
+BULLSEYE_LOCK = 5.0
 
 
 def flight(shot, steer=0.0, dt=1 / 60):
@@ -225,10 +230,11 @@ def build(name: str, workshop: str = WORKSHOP) -> str:
                  .prop(PROP_CUBE, collision=Collision.NONE, shadow=Shadow.OFF, tint=(0.95, 0.95, 0.9, 1)))
         flag.add(obj("Cloth", pos=(0.33, 1.95, 0), scale=(0.6, 0.4, 0.03))
                  .prop(PROP_CUBE, collision=Collision.NONE, shadow=Shadow.OFF, tint=tints[2]))
+        paints = []
         for k, (h, tint) in enumerate(zip(halves, tints)):
             inset = 0.15 if k == 0 else 0.0
-            root.add(obj(f"Paint_{k}", pos=(0, 0.01 + 0.015 * k, 0), scale=(2 * (h - inset), 0.02, 2 * (h - inset)))
-                     .prop(PROP_CUBE, collision=Collision.NONE, shadow=Shadow.OFF, tint=tint))
+            paints.append(root.add(obj(f"Paint_{k}", pos=(0, 0.01 + 0.015 * k, 0), scale=(2 * (h - inset), 0.02, 2 * (h - inset)))
+                                   .prop(PROP_CUBE, collision=Collision.NONE, shadow=Shadow.OFF, tint=tint)))
         slab_h = SLAB[1] - SLAB[0]
         for k, (h, add) in enumerate(zip(halves, spec["add"])):
             acts = [act_change_score(add, Op.ADD, Targets.SOURCE)]
@@ -237,9 +243,14 @@ def build(name: str, workshop: str = WORKSHOP) -> str:
             if k == 2:
                 total = sum(spec["add"])
                 acts += [act_spawn_effect(Effect.CONFETTI, Targets.SOURCE), act_play_sound(finish_wav.guid, 1.0, Targets.RECEIVER),
-                         act_show_message(f"В яблочко! +{total} / Bullseye! +{total}", 1.5, MsgTarget.TARGET, Targets.SOURCE)]
-            root.add(obj(f"Score_{k}").trigger(TriggerShape.BOX, size=(2 * h, slab_h, 2 * h),
-                                               center=(0, SLAB[0] + slab_h / 2, 0), on_enter=acts))
+                         act_show_message(f"В яблочко! +{total} / Bullseye! +{total}", 1.5, MsgTarget.TARGET, Targets.SOURCE),
+                         act_set_active(ActiveState.DISABLED, [paints[2].transform_guid])]   # краска пропала — яблочко занято
+            zone = root.add(obj(f"Score_{k}").trigger(TriggerShape.BOX, size=(2 * h, slab_h, 2 * h),
+                                                      center=(0, SLAB[0] + slab_h / 2, 0), on_enter=acts, disable_after=(k == 2)))
+            if k == 2:
+                # таймер плота возвращает зону и краску яблочка (включение включённого безвредно); у выключенного набора
+                # этапа таймер не идёт, с включением набора — идёт
+                root.logic(trig_timer(BULLSEYE_LOCK, act_set_active(ActiveState.ENABLED, [zone.transform_guid, paints[2].transform_guid])))
         root.add(obj("Catch").trigger(TriggerShape.BOX, size=(2 * h0 + 0.4, 0.4, 2 * h0 + 0.4), center=(0, 0.1, 0),
                                       on_enter=[act_match_transform(ret[side].transform_guid, values=1 | 2 | 4 | 16,
                                                                     flags=Targets.SOURCE)]))

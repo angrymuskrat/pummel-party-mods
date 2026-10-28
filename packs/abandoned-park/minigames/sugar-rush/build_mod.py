@@ -42,9 +42,11 @@ ROUND = 60.0
 CARRY_SPEED = 0.8     # с ватой бег ×0.8 (4.8 м/с): догоняющий сокращает разрыв на 1.2 м/с — 3 м за 2.5 с
 PUNCH_STUN = 1.0      # удар оглушает на 1 с: вата успевает упасть впереди, ударивший — добежать (DESIGN.md, «Отбор»)
 STUN_IMMUNITY = 1.5   # после оглушения 1.5 с неуязвимости к нему — без цепных станов (вату ронять всё равно можно)
-SWAT_COOLDOWN = 1.2   # взмах ватой: оглушает на 1 с, перезарядка 1.2 с
+SWAT_COOLDOWN = 1.2   # взмах ватой: перезарядка 1.2 с. Не оглушает (бэклог 2026-10-27; было 1 с): владелец, ударив
+#                       догоняющего первым, выигрывал каждый размен. Взмах остался ради выбивания ваты у второго владельца
+SWAT_STUN = False
 FLOSS2_POINTS = ((14.0, 0.0), (-14.0, 0.0), (13.5, 67.5), (13.5, 247.5))   # (r, угол°) для второй ваты: у края на полу
-T_SWEEP_A, T_FLOSS2, T_SWEEP_B = 15.0, 30.0, 45.0
+T_SWEEP_A, T_FLOSS2, T_SWEEP_B = 15.0, 40.0, 45.0   # вторая вата на 40 с (было 30): погоня за одной дольше
 SWEEP_A_SPEED, SWEEP_B_SPEED = 40.0, -55.0   # °/с: 9 с и 6.5 с на оборот — периоды не кратны
 SWEEP_FROM, SWEEP_TO = 0.6, 5.5
 SWEEP_PUSH, SWEEP_LIFT = 8.0, 5.0            # толчок метлы — как в Death Carousel (проверен плейтестом)
@@ -131,7 +133,7 @@ def build(name: str, workshop: str = WORKSHOP) -> str:
     swat = copy.deepcopy(DEFAULT_WEAPON_INFO)
     swat["basicInfo"].update(damage=0, cooldown=SWAT_COOLDOWN)
     swat["meleeInfo"].update(damage=0, range=2.0, attackAnimation=1)   # Swing
-    swat.update(stunOnHit=True, stunDuration=PUNCH_STUN)
+    swat.update(stunOnHit=SWAT_STUN, stunDuration=PUNCH_STUN if SWAT_STUN else 0.0)
 
     def floss_item(iname, visual, tint):
         # очки — 'While Held' раз в секунду владельцу (ModItem.UpdateHeld: Source — держащий игрок, выполняет владелец).

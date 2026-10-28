@@ -44,10 +44,18 @@ HORSE_R = 6.5         # кольцо шестов с лошадками
 HORSE_LOW = -0.25     # нижняя точка лошадки: седло на 0.8 м над полом — запрыгнуть можно (прыжок 0.98 м)
 HORSE_RISE = 0.9      # ход вверх; на подъёме седло 1.7 м — брусья (0.55 м) проходят под стоящим на нём
 ROOF_H = 6.0          # высота крыши над полом: камера третьего лица у края смотрит под неё
-EDGE_FALL = (18.0, 49.0)   # когда падает каждый из 8 секторов края, с, от начала раунда (у каждого своя случайная задержка)
+# фазы эскалации, с от начала раунда (прожарка 2026-10-25: расписание 90-секундного раунда, сжатое в 0.7 раза;
+# бэклог 2026-10-27: ещё ×0.8 — с двумя жизнями выбывают позже, а раунд те же 60 с)
+SCHEDULE_K = 0.8
+EDGE_FALL = (18.0 * SCHEDULE_K, 49.0 * SCHEDULE_K)   # когда падает каждый из 8 секторов края, с (у каждого своя случайная задержка)
 EDGE_WARN = 1.5       # красный сектор и скрип до падения
-# фазы эскалации, с от начала раунда (прожарка 2026-10-25: расписание 90-секундного раунда, сжатое в 0.7 раза)
-T_SWEEP_A, T_EDGE, T_SWEEP_C, T_DEBRIS, T_GRAVITY = 7.0, 18.0, 28.0, 35.0, 42.0
+T_SWEEP_A, T_EDGE, T_SWEEP_C, T_DEBRIS, T_GRAVITY = (t * SCHEDULE_K for t in (7.0, 18.0, 28.0, 35.0, 42.0))
+# две жизни (бэклог 2026-10-27): первый вылетевший смотрел 50 с. Кислота отнимает жизнь и возвращает на карусель
+# (Change Health −1 → при 0 HP игрок умирает сам, SimpleModPlayer.ChangeHealth → KillPlayer), без респауна.
+# Last Man Standing остаётся: выбывает тот, у кого кончились жизни
+LIVES = 2
+RETURN_POINT = (0.0, 3.5)   # x, z точки возврата на внутреннем диске (мир); пол под ней вращается
+RING_C = True               # вторая метла; снять, если на плейтесте первый вылетает раньше 15 с
 PUNCH_PUSH, PUNCH_LIFT = 7.0, 4.5   # м/с от удара: в полёте ~0.36 с при гравитации 25 — отлёт на 2–3 м
 # обломки сыплются с конструкции крыши: появляются прямо под ней (низ крыши — ROOF_H), а не над, иначе пролетали
 # бы сквозь твёрдую крышу (Mover коллизий не замечает)
@@ -87,7 +95,8 @@ def build(name: str, workshop: str = WORKSHOP) -> str:
               # убивал сразу; урон 0 даёт только анимацию вздрагивания. Своего отброса у удара нет — он в weaponHitTrigger:
               # Source — бьющий, Receiver — получивший, Towards Receiver = от бьющего. m_hitType 1 = Melee; при 0 триггер
               # не срабатывает ни на что. Оглушение выключено: длительность приводится к целым секундам, 0.8 → 0
-              settings_overrides={"respawnEnabled": False, "useHealth": False, "showHealthBar": False,
+              # здоровье включено только ради жизней (LIVES): удар с уроном 0 по-прежнему лишь вздрагивание
+              settings_overrides={"respawnEnabled": False, "useHealth": True, "health": LIVES, "showHealthBar": True,
                                   "canPunch": True, "punchDamage": 0, "punchStunsTarget": False,
                                   "weaponHitTrigger": {"m_type": 80, "m_actions": [], "m_hitType": 1}},
               player_triggers={"onDeathTrigger": [act_show_message("Минус один! / One down!", 1.5)],
@@ -135,9 +144,15 @@ def build(name: str, workshop: str = WORKSHOP) -> str:
     # сетка воды центрирована на позиции объекта (LowPolyWater: Width × CellSize метров)
     world.add(obj("Pond").water(
         width=30, height=30, cell=2.0, deep=(0.12, 0.45, 0.08, 0.8), shallow=(0.45, 1.0, 0.2, 0.8), froth=(0.8, 1.0, 0.6, 1)))
+    # кислота: взрыв на месте падения, перенос на диск (Match Transform → TeleportPlayer, как чекпоинты Coaster Run),
+    # потом минус жизнь. Порядок важен: с последней жизнью игрок умирает уже на карусели, а не под водой
+    return_point = world.add(obj("ReturnPoint", pos=(RETURN_POINT[0], DECK_Y + 1.2, RETURN_POINT[1])))
     world.add(obj("KillVolume", pos=(0, -0.6, 0)).trigger(
         TriggerShape.BOX, size=(2 * POND_HALF + 4, 1.6, 2 * POND_HALF + 4),
-        on_enter=[act_spawn_effect(Effect.EXPLOSION, Targets.SOURCE), act_kill(Targets.SOURCE)]))
+        on_enter=[act_spawn_effect(Effect.EXPLOSION, Targets.SOURCE),
+                  act_show_message("Минус жизнь! / Lost a life!", 1.5, MsgTarget.TARGET, Targets.SOURCE),
+                  act_match_transform(return_point.transform_guid, values=1 | 2 | 4 | 16, flags=Targets.SOURCE),
+                  act_change_health(1, Op.SUB, Targets.SOURCE)]))
     world.add(obj("Axle", pos=(0, DECK_Y / 2 - 0.25, 0), scale=(1.4, DECK_Y + 0.5, 1.4), layer=LAYER_WORLD_WALL)
               .prop(PROP_CUBE, collision=Collision.BOX, materials=[metal_mat.guid]))
 
@@ -212,7 +227,7 @@ def build(name: str, workshop: str = WORKSHOP) -> str:
         return ring
 
     ring_a = sweeper_ring("RingA", SWEEP_A_RAMP, T_SWEEP_A, (0, 180), (0.95, 0.8, 0.15, 1))
-    ring_c = sweeper_ring("RingC", SWEEP_C_RAMP, T_SWEEP_C, (90, 270), (0.85, 0.2, 0.15, 1))
+    ring_c = sweeper_ring("RingC", SWEEP_C_RAMP, T_SWEEP_C, (90, 270), (0.85, 0.2, 0.15, 1)) if RING_C else None
 
     # --- низкие препятствия на внутреннем диске (ниже прыжка): упавшая лошадка и ящики между лучами спавна,
     # целиком внутри r ≈ 3 — до кольца появления (r 4) остаётся больше радиуса игрока при любом числе игроков
@@ -292,8 +307,8 @@ def build(name: str, workshop: str = WORKSHOP) -> str:
             act_wait(T_EDGE - T_SWEEP_A),
             act_show_message("Край осыпается! / The edge is crumbling!", 2.0),   # сами сектора падают по своим таймерам
             act_wait(T_SWEEP_C - T_EDGE),
-            act_show_message("Ещё метла! / More sweepers!", 2.0),
-            act_set_active(ActiveState.ENABLED, [ring_c.transform_guid]),
+            *([act_show_message("Ещё метла! / More sweepers!", 2.0),
+               act_set_active(ActiveState.ENABLED, [ring_c.transform_guid])] if RING_C else []),
             *debris_phase,
             # низкая гравитация вдвое удлиняет полёт от удара (0.36 → 0.72 с, отлёт ~2.5 → ~5 м): на диске r 7
             # почти любой удар становится смертельным — это финальная фаза, после неё раунд обычно кончается за секунды

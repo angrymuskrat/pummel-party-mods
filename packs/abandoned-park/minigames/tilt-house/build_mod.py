@@ -67,6 +67,17 @@ SCHEDULE = [("E", False), ("W", False), ("N", False), ("S", False), ("E", True),
             ("W", True), ("S", True), ("N", True), ("E", True), ("S", True), ("W", True)]
 T_CRACK = 20.0         # сообщение «Пол трещит!» перед окном осыпания
 ROUND = 60.0
+# случайный порядок стен (бэклог 2026-10-27): порядок SCHEDULE заучивался за 2–3 матча. Теперь каждый крен —
+# Spawn Prefab со списком из четырёх префабов-кренов (E/W/N/S одного веса), игра выбирает случайный (ServerRelay —
+# у всех один). Префаб по Enable выполняет ту же цепочку (стена, звук, гравитация, наклон, выравнивание) и уничтожает
+# себя; ссылки из префаба на стены, House и Leveler сцены — через глобальный реестр guid (ModAssetReference →
+# WorkshopController.GetAssetWithGuid). Enable у заспавненного префаба — ModLogic.OnEnable/Update, в игре не проверено.
+# Из SCHEDULE при этом берётся только вес крена; False — прежний зашитый порядок
+RANDOM_ORDER = True
+# две жизни (бэклог 2026-10-27): кислота отнимает жизнь и возвращает в дом (Match Transform), при 0 HP игрок умирает
+# сам (SimpleModPlayer.ChangeHealth → KillPlayer). Точка возврата — плита средней полосы, она не осыпается
+LIVES = 2
+RETURN_TILE = (-5, 1)
 PUNCH_PUSH, PUNCH_LIFT = 6.0, 4.5   # м/с от удара; при торможении 12 после приземления доезжаешь ещё ~0.5 м: всего ~2 м
 SPAWN_R = 4.2          # кольцо спавна посередине между ямой (|x|, |z| < 2) и полосой у стен (6…8)
 BOT_ORBIT_R, BOT_ORBIT_SPEED = 3.6, 20.0   # цель ботов ходит по кругу вокруг ямы: 1.3 м/с
@@ -99,7 +110,8 @@ def build(name: str, workshop: str = WORKSHOP) -> str:
               round_duration=ROUND, end_conditions=EndCondition.TIMER | EndCondition.REMAINING_ALIVE,
               placement=Placement.LAST_MAN_STANDING, min_players_alive=1,
               # удар толкает, а не убивает (схема Death Carousel): урон 0, отброс в weaponHitTrigger (m_hitType 1 = Melee)
-              settings_overrides={"respawnEnabled": False, "useHealth": False, "showHealthBar": False,
+              # здоровье включено только ради жизней (LIVES): удар с уроном 0 по-прежнему лишь вздрагивание
+              settings_overrides={"respawnEnabled": False, "useHealth": True, "health": LIVES, "showHealthBar": True,
                                   "canPunch": True, "punchDamage": 0, "punchStunsTarget": False,
                                   "movementSpeed": RUN, "movementAcceleration": ACCEL, "movementDecelaration": DECEL,
                                   "midAirMovementAcceleration": MID_AIR, "playerGravity": PLAYER_GRAVITY, "jumpSpeed": JUMP,
@@ -139,9 +151,15 @@ def build(name: str, workshop: str = WORKSHOP) -> str:
         world.add(cube(f"Foundation_{k}", (x, found_h / 2, z), (sx, found_h, sz), mat=concrete_mat))
     world.add(obj("Acid", pos=(0, 0.3, 0)).water(
         width=8, height=8, cell=2.0, deep=(0.12, 0.45, 0.08, 0.8), shallow=(0.45, 1.0, 0.2, 0.8), froth=(0.8, 1.0, 0.6, 1)))
+    # кислота: взрыв, перенос на плиту RETURN_TILE (на 1.2 м над полом — при крене 9° пол там выше не больше чем на
+    # 0.8 м), потом минус жизнь: с последней жизнью игрок умирает уже в доме, а не под полом
+    return_point = world.add(obj("ReturnPoint", pos=(RETURN_TILE[0], FLOOR_Y + 1.2, RETURN_TILE[1])))
     world.add(obj("KillVolume", pos=(0, KILL_TOP - 0.5, 0)).trigger(
         TriggerShape.BOX, size=(2 * HALF, 1.0, 2 * HALF),
-        on_enter=[act_spawn_effect(Effect.EXPLOSION, Targets.SOURCE), act_kill(Targets.SOURCE)]))
+        on_enter=[act_spawn_effect(Effect.EXPLOSION, Targets.SOURCE),
+                  act_show_message("Минус жизнь! / Lost a life!", 1.5, MsgTarget.TARGET, Targets.SOURCE),
+                  act_match_transform(return_point.transform_guid, values=1 | 2 | 4 | 16, flags=Targets.SOURCE),
+                  act_change_health(1, Op.SUB, Targets.SOURCE)]))
 
     # --- дом
     house = world.add(obj("House", pos=(0, FLOOR_Y, 0)))
@@ -303,6 +321,14 @@ def build(name: str, workshop: str = WORKSHOP) -> str:
                 act_set_color(WHITE, targets=[wall]),
                 act_wait(*GAP[heavy])]
 
+    director = mod.add(obj("Director", pos=(0, FLOOR_Y + 1, 0)))
+    # случайный порядок: префаб-крен на каждую стену и вес; Director спавнит случайный из четырёх на своём месте и
+    # ждёт длину крена (цепочка префаба без паузы GAP) плюс паузу. Префаб по Enable: цепочка → Kill/Destroy себя
+    tilt_prefabs = {}
+    if RANDOM_ORDER:
+        for heavy in (False, True):
+            tilt_prefabs[heavy] = [mod.add_prefab(obj(f"Tilt_{d}_{'heavy' if heavy else 'light'}").logic(
+                trig_enable(*tilt(d, heavy)[:-1], act_kill(Targets.RECEIVER)))).guid for d in DIRS]
     chain = [act_show_message("Дом кренится к красной стене — беги в гору! / The house tilts toward the red wall — run uphill!", 3.0),
              act_wait(START_WAIT)]
     first_heavy = True
@@ -310,8 +336,12 @@ def build(name: str, workshop: str = WORKSHOP) -> str:
         if heavy and first_heavy:
             chain.append(act_show_message("Дом рушится! / The house is collapsing!", 2.0))
             first_heavy = False
-        chain += tilt(d, heavy)
-    director = mod.add(obj("Director", pos=(0, FLOOR_Y + 1, 0)))
+        if RANDOM_ORDER:
+            chain += [act_spawn_prefab(tilt_prefabs[heavy], Targets.ADVANCED, [director.transform_guid]),
+                      act_wait(WARN + HOLD[heavy] + LEVEL_RESET),
+                      act_wait(*GAP[heavy])]
+        else:
+            chain += tilt(d, heavy)
     director.logic(trig_round_start(*chain))
     mod.add(obj("Announcer").logic(trig_round_start(
         act_wait(T_CRACK), act_show_message("Пол у стен трещит! / The floor by the walls is cracking!", 2.0))))

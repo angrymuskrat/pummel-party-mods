@@ -44,7 +44,12 @@ CARTS = ((-3.05, 0.14, 0.0), (-1.3, 0.11, 2.5), (0.45, 0.17, 1.2))   # x, цик
 BYPASS = ((40.0, 47.6), (50.0, 60.0))   # куски обхода по z на x LANES[2]
 CART_RUN = 14.0       # ход вагонетки навстречу от z 57
 LIFT_TOP = (72.0, 9.0)     # подъём: от конца полотна (z 60, y 4) до площадки CP4
+LIFT_W = 2.0               # было 2.6 (бэклог 2026-10-27): толкать есть смысл только в теснинах — подъём стал уже
 CP4 = (-3.0, 3.0, 72.0, 78.0)
+# вторая теснина — выход с площадки CP4 к первой плите петли: две стенки выше прыжка по северному краю площадки,
+# между ними проход CHOKE_GAP напротив первой плиты (x ≈ 0.35). Правая стенка короче: угол площадки x > CHOKE_R_END
+# остаётся открытым — там начинается хорда (CHORD[0] = (2, 9, 77)), её вход теснина не закрывает
+CHOKE_GAP, CHOKE_R_END, CHOKE_H = (-0.35, 1.05), 1.7, 1.4   # зазор 1.4 м: бот (r 0.4) с узла x 0.35 проходит без касания
 LOOP_C, LOOP_R = (14.0, 78.0), 14.0   # дуга сломанной петли: от (0, 78) по +Z до (14, 92) по +X
 PLATE = 1.8
 PLATE_TOPS = (9.3, 9.6, 9.4, 9.8, 10.0, 9.7)   # перепад соседних ≤ 0.4 м
@@ -234,24 +239,29 @@ def build(name: str, workshop: str = WORKSHOP) -> str:
                                             act_play_sound(rumble_wav.guid, 0.8, Targets.RECEIVER)])
                          .simple_animator(anim_move_along_line(freq, (0, 0, -CART_RUN)), time_offset=phase))
         cart.add(obj("Body").prop(cart_obj.guid, collision=Collision.NONE, materials=[paint_mat.guid]))
-    g0, g1 = BED_X - bw / 2, LANES[2] + 0.65   # рубеж на полотне и на обходе
+    g0, g1 = BED_X - bw / 2, LANES[2] + 0.65   # рубежи на полотне и на обходе: начало и середина вагонеток
     gate("Gate_S3", ((g0 + g1) / 2, TRACK_Y + 1.5, bz0 + 1.0), (g1 - g0, 3.0, 1.0))
+    gate("Gate_S3_Mid", ((g0 + g1) / 2, TRACK_Y + 1.5, (bz0 + bz1) / 2), (g1 - g0, 3.0, 1.0))
     cp3 = checkpoint("CP3", (0, TRACK_Y + 1.5, bz0 + 1.5), 0)
     nav_points += [("Nav_Bed_0", (0, TRACK_Y + 0.5, 42.0)), ("Nav_Bed_1", (0, TRACK_Y + 0.5, 50.0)),
                    ("Nav_Bed_2", (0, TRACK_Y + 0.5, 58.0))]
 
     # --- S4 подъём (узкое место 2.6 м) и площадка CP4
     lz, ly = LIFT_TOP
-    track.add(ramp("Lift", (0, TRACK_Y, bz1), (0, ly, lz), 2.6, 0.5, layer=LAYER_WORLD_GROUND)
+    track.add(ramp("Lift", (0, TRACK_Y, bz1), (0, ly, lz), LIFT_W, 0.5, layer=LAYER_WORLD_GROUND)
               .prop(PROP_CUBE, collision=Collision.BOX, materials=[metal_mat.guid]))
     cx0, cx1, cz0, cz1 = CP4
     track.add(slab("CP4Deck", cx0, cx1, cz0, cz1, ly, layer=LAYER_WORLD_GROUND)
               .prop(PROP_CUBE, collision=Collision.BOX, materials=[metal_mat.guid]))
+    # теснина на выходе к петле (см. CHOKE_*); узел ботов Nav_CP4 стоит на оси зазора, следующий — первая плита
+    for nm, a0, a1 in (("Choke_L", cx0, CHOKE_GAP[0]), ("Choke_R", CHOKE_GAP[1], CHOKE_R_END)):
+        track.add(slab(nm, a0, a1, cz1 - 0.75, cz1 - 0.25, ly + CHOKE_H, thick=CHOKE_H, layer=LAYER_WORLD_WALL)
+                  .prop(PROP_CUBE, collision=Collision.BOX, materials=[paint_mat.guid]))
     cp_lift = checkpoint("CP_Lift", (0, TRACK_Y + 1.5, bz1 - 2.0), 0)
     cp4 = checkpoint("CP4", (0, ly + 1.5, cz0 + 2.0), 0)
     gate("Gate_S4", (0, ly + 1.5, cz0 + 1.5), (cx1 - cx0, 3.0, 1.0))
     nav_points += [("Nav_LiftBottom", (0, TRACK_Y + 0.5, bz1 + 1.0)), ("Nav_LiftTop", (0, ly + 0.5, cz0 + 1.0)),
-                   ("Nav_CP4", (0, ly + 0.5, cz1 - 0.8))]
+                   ("Nav_CP4", (sum(CHOKE_GAP) / 2, ly + 0.5, cz1 - 1.2))]   # перед зазором теснины, по его оси
 
     # --- сломанная петля: 6 плит по дуге, две качаются (возят стоящего), две ржавые
     for i, top in enumerate(PLATE_TOPS):
@@ -272,6 +282,10 @@ def build(name: str, workshop: str = WORKSHOP) -> str:
                 decor.add(obj(f"LoopPost_{i}", pos=(px, (base - 0.4) / 2, pz), scale=(0.3, base - 0.4, 0.3))
                           .prop(PROP_CUBE, collision=Collision.NONE, materials=[metal_mat.guid]))
         nav_points.append((f"Nav_Loop_{i}", (px, top + 0.5, pz)))
+
+    # рубеж на входе в петлю — одной коробкой через первую плиту (x 0.35) и начало хорды (x ≈ 5.5 на этом z):
+    # восемь рубежей вместо шести (бэклог 2026-10-27), чтобы не добежавшие реже делили места
+    gate("Gate_Loop", (2.5, ly + 1.5, 80.8), (8.0, 3.0, 1.2))
 
     # --- срезка по хорде петли: три куска балки, средний ржавый — пропадает по таймеру, как пролёты S2
     (ax, ay, az), (bx, by, bz) = CHORD

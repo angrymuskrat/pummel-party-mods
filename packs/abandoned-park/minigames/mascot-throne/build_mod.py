@@ -39,7 +39,8 @@ GALLERY_WALL, GALLERY_DOOR = 2.4, 2.4   # стены выше прыжка (0.98
 ISLAND_R, ISLAND_DEG, ISLAND_SIZE = 22.6, 330.0, 3.4   # зазор кислоты до площади 2.7 м — прыжок на пределе
 BRIDGE_W, BRIDGE_SHIFT = 1.2, 2.6   # мост по лучу от центра и второй, сдвинутый вбок
 ZONE_R = 2.0          # радиус зоны очков; кольцо crown_zone.obj (r 2.25…2.5) масштабируется на ZONE_R / 2.4
-SHRINK = 0.6          # кольцо за стоянку сжимается до r 1.2 и при переезде расправляется
+SHRINK = 0.5          # кольцо за стоянку сжимается до r 1.0 (было 0.6 → r 1.2; бэклог 2026-10-27: толпа стояла в кольце
+#                       и не дралась — теперь вмещает одного-двух) и при переезде расправляется
 ROUND = 60.0
 FIRST_HOLD = 10.0     # корона на сцене в начале: со спавна до зоны всем одинаково
 # стоянки до финала: номинальная длина, с; в игре — случайно ±HOLD_JITTER. Сид события берётся во время матча
@@ -107,10 +108,13 @@ def build(name: str, workshop: str = WORKSHOP) -> str:
                                 "others out. / Трон маскота: корона перелетает между четырьмя тронами — стой в её кольце, "
                                 "очко каждую секунду, выбивай остальных.",
               round_duration=ROUND, end_conditions=EndCondition.TIMER, placement=Placement.MOST_POINTS,
-              # бой как в Ticket Rush (проверен плейтестом): 3 удара — смерть и респаун через 3 с у края площади.
-              # Плюс отброс от удара: weaponHitTrigger, m_hitType 1 = Melee, Source — бьющий, Receiver — получивший
+              # удар только толкает (бэклог 2026-10-27; было 3 HP и смерть от трёх ударов): смерть стоила 10% раунда и
+              # доставалась тому, кого лидер выбил из кольца, — снежный ком. Умирают теперь только в кислоте (остров,
+              # выход к мостам), респаун через 3 с у края площади. Без здоровья у игрока 1 HP, поэтому punchDamage 0.
+              # Отброс от удара: weaponHitTrigger, m_hitType 1 = Melee, Source — бьющий, Receiver — получивший
               settings_overrides={"respawnEnabled": True, "respawnTime": 3.0, "respawnInvulnerableTime": 2.0,
-                                  "canPunch": True, "useHealth": True, "health": 3, "punchDamage": 1, "showHealthBar": True,
+                                  "canPunch": True, "useHealth": False, "punchDamage": 0, "showHealthBar": False,
+                                  "punchStunsTarget": False,
                                   "weaponHitTrigger": {"m_type": 80, "m_actions": [], "m_hitType": 1}},
               player_triggers={"weaponHitTrigger": [
                   act_change_velocity(PUNCH_PUSH, VelocityDir.TOWARDS_RECEIVER, Op.ADD, flags=Targets.RECEIVER),
