@@ -1,0 +1,410 @@
+{
+  "slug": "shadow-theatre",
+  "name": "Shadow Theatre",
+  "trials": 5,
+  "reveal": 0,
+  "answer_time": 10.5,
+  "total_duration": 59.5,
+  "trial_variants": [
+    {
+      "trial": 0,
+      "variant": 0,
+      "scores": [
+        3,
+        0,
+        0,
+        0
+      ],
+      "options": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "selector": "ef720361-12f6-4ab1-9642-0883751a6c44",
+      "variant_transform": "6ea75986-d69d-49f7-8dab-f6dedf52e9f0",
+      "answer_group": "ec0040a4-c849-4e19-8d03-3fb60b70f727",
+      "score_group": "2f11a0e5-d6d2-44c3-bfc3-a5d9279cc064"
+    },
+    {
+      "trial": 0,
+      "variant": 1,
+      "scores": [
+        3,
+        0,
+        0,
+        0
+      ],
+      "options": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "selector": "a7d763d0-7b55-4392-ad6a-bca21ef755a0",
+      "variant_transform": "80b3bcda-da6c-429a-a176-b3c149c514e3",
+      "answer_group": "aad033ce-9b4b-46e2-8ee6-b20f4b874933",
+      "score_group": "79637638-5921-46e9-bcfc-363626b4375b"
+    },
+    {
+      "trial": 0,
+      "variant": 2,
+      "scores": [
+        0,
+        0,
+        0,
+        3
+      ],
+      "options": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "selector": "0421c66f-4f01-48ca-b230-5b32a43529fb",
+      "variant_transform": "84c3626a-218c-4740-8a27-7f52c1535c43",
+      "answer_group": "a42eb3ec-edb4-4be9-ab53-77f126efb81c",
+      "score_group": "222bf882-9d59-4b57-b34d-843baa64db03"
+    },
+    {
+      "trial": 0,
+      "variant": 3,
+      "scores": [
+        3,
+        0,
+        0,
+        0
+      ],
+      "options": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "selector": "551ca5f5-4780-48da-8207-c87aab247166",
+      "variant_transform": "40d1a51b-085d-4fcf-8292-18a26a6f95e8",
+      "answer_group": "902ebe8e-ad70-4eab-bb30-b168b338367b",
+      "score_group": "349b7fa7-5b3e-4891-802b-3322bb08d7b0"
+    },
+    {
+      "trial": 1,
+      "variant": 0,
+      "scores": [
+        0,
+        3,
+        0,
+        0
+      ],
+      "options": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "selector": "3618c298-5aad-4c32-811c-81783b1ff40d",
+      "variant_transform": "2d8d79d9-d391-4b3a-a865-f894639791e8",
+      "answer_group": "7f09751b-7c19-4153-8d2c-7215b1804b6d",
+      "score_group": "b1cb3985-3814-474f-8acc-1a05ab12d5f1"
+    },
+    {
+      "trial": 1,
+      "variant": 1,
+      "scores": [
+        0,
+        0,
+        0,
+        3
+      ],
+      "options": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "selector": "2bd48b8f-6d95-455f-b2f4-32e92b8ecf71",
+      "variant_transform": "1f3570d0-ced4-473a-a110-1a69af2bcac5",
+      "answer_group": "202c9d28-824f-4cd1-a177-e37ed9d400fe",
+      "score_group": "de96c79f-8b3c-4a11-be4f-5e7e917d7215"
+    },
+    {
+      "trial": 1,
+      "variant": 2,
+      "scores": [
+        0,
+        0,
+        0,
+        3
+      ],
+      "options": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "selector": "85103488-cefc-474f-b2d1-0e1572ce683d",
+      "variant_transform": "b00fcf00-d9ca-4ed8-a48e-3f88fc8f7d8e",
+      "answer_group": "fc5ef2bb-b7bf-4485-9e5a-a5f435653791",
+      "score_group": "47c0fec1-cc54-4d54-929d-81f759328bae"
+    },
+    {
+      "trial": 1,
+      "variant": 3,
+      "scores": [
+        0,
+        3,
+        0,
+        0
+      ],
+      "options": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "selector": "c00f3cee-92dc-4043-a423-6f19227f13d1",
+      "variant_transform": "8badf44d-8471-436d-a5da-9e914612fe07",
+      "answer_group": "93910bb9-26c7-4161-84b2-8b81be283725",
+      "score_group": "a3b28901-6fad-429c-9d96-41027ae311ed"
+    },
+    {
+      "trial": 2,
+      "variant": 0,
+      "scores": [
+        0,
+        0,
+        3,
+        0
+      ],
+      "options": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "selector": "12da6442-6c22-467a-a3a8-737abc3b4b22",
+      "variant_transform": "9a847850-66f7-45f1-b287-010a16b694d9",
+      "answer_group": "11bcbfee-f5ee-4ff8-b427-a76c557a8149",
+      "score_group": "e1bba3eb-9b9b-4392-8c79-dd2fa6ac5a20"
+    },
+    {
+      "trial": 2,
+      "variant": 1,
+      "scores": [
+        0,
+        0,
+        0,
+        3
+      ],
+      "options": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "selector": "df5dacbc-3a94-4481-a52d-8fb5b0967f48",
+      "variant_transform": "b95787f2-53ad-4ac3-bcdd-246841428316",
+      "answer_group": "bc578120-0e62-4946-ad58-bcd177fd8812",
+      "score_group": "d11e84b2-26f9-4c22-8fdc-4975a74c6968"
+    },
+    {
+      "trial": 2,
+      "variant": 2,
+      "scores": [
+        0,
+        0,
+        3,
+        0
+      ],
+      "options": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "selector": "0ab07790-ae89-4740-ab83-4a6cfce04249",
+      "variant_transform": "938dd95c-f4ae-47af-b9e1-33dc74e7c10c",
+      "answer_group": "94cf9b7a-fbe6-4635-a934-f656bc512d6a",
+      "score_group": "4ab992fc-27fa-4ed3-b2a9-d8d2ebdab43f"
+    },
+    {
+      "trial": 2,
+      "variant": 3,
+      "scores": [
+        0,
+        3,
+        0,
+        0
+      ],
+      "options": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "selector": "2d087ef4-858f-42d1-aa1d-30637b4d499a",
+      "variant_transform": "2bfa0dca-10ad-4728-9ce6-498e4ecf12dd",
+      "answer_group": "96dbfee7-3382-4eb4-8644-0974d1aa5852",
+      "score_group": "90561ea4-8499-427c-9e44-968791ccd321"
+    },
+    {
+      "trial": 3,
+      "variant": 0,
+      "scores": [
+        0,
+        0,
+        3,
+        0
+      ],
+      "options": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "selector": "c73af567-15c4-4541-bd30-781d862440ed",
+      "variant_transform": "0acaca6c-0312-48b3-9063-e62714e0d08c",
+      "answer_group": "cf0638c8-d4b1-42b9-8ad3-3c3b2f39ce44",
+      "score_group": "dfef1c04-e68f-453a-a995-832987ba8bc2"
+    },
+    {
+      "trial": 3,
+      "variant": 1,
+      "scores": [
+        0,
+        0,
+        0,
+        3
+      ],
+      "options": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "selector": "4b9fbe83-41d4-4d8d-821a-ec8c96f0e815",
+      "variant_transform": "e493d2d4-0d84-46a6-ad5d-5a71f772b01b",
+      "answer_group": "4e351032-58e6-4475-8bd7-955a9f97313c",
+      "score_group": "97d856e4-0dcc-4086-b203-23a6f850026b"
+    },
+    {
+      "trial": 3,
+      "variant": 2,
+      "scores": [
+        0,
+        3,
+        0,
+        0
+      ],
+      "options": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "selector": "762e7348-e03f-4595-8461-95ffd3f396ef",
+      "variant_transform": "3dfe02e8-4076-42c7-8543-af3476b89b6a",
+      "answer_group": "259c71aa-eb67-4040-b33f-d2a0f10a07a7",
+      "score_group": "55196a8f-47a3-4e0b-8bfb-b6b5ba6289e8"
+    },
+    {
+      "trial": 3,
+      "variant": 3,
+      "scores": [
+        3,
+        0,
+        0,
+        0
+      ],
+      "options": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "selector": "63be94f0-4689-45e7-97b8-b96926e28740",
+      "variant_transform": "8ddfa640-4f92-45bb-b0f3-989400b4e281",
+      "answer_group": "700edf79-2bd8-4df5-b3b6-ea36ca689e20",
+      "score_group": "610efa82-d93c-4900-9d8e-705c5927e8c6"
+    },
+    {
+      "trial": 4,
+      "variant": 0,
+      "scores": [
+        3,
+        0,
+        0,
+        0
+      ],
+      "options": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "selector": "f7c48996-10a9-41e7-b866-b1e4a6e36e3c",
+      "variant_transform": "0f75e6bd-068a-479f-843e-10d0f7770ee4",
+      "answer_group": "34cbac1e-f10e-4781-ad28-e1f415642b7c",
+      "score_group": "be12194b-84cf-4078-8da8-25599bb3e7a7"
+    },
+    {
+      "trial": 4,
+      "variant": 1,
+      "scores": [
+        0,
+        0,
+        3,
+        0
+      ],
+      "options": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "selector": "1c7981ba-059d-4aec-a986-833ea63b55d0",
+      "variant_transform": "03a7d247-310c-44b6-854f-2500ea7ff23c",
+      "answer_group": "cee908fc-4963-4b21-b7f6-aeb2655ead39",
+      "score_group": "ebdbd2f7-ec45-4afe-9003-a2dcd1565064"
+    },
+    {
+      "trial": 4,
+      "variant": 2,
+      "scores": [
+        3,
+        0,
+        0,
+        0
+      ],
+      "options": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "selector": "acbd1d22-c5f7-42fb-a5fe-8d6a9ebdafa7",
+      "variant_transform": "34883edb-1c5f-4ecf-882e-62614325022b",
+      "answer_group": "cc62e650-7564-4fbf-941b-49c3da6900c2",
+      "score_group": "afe7d92c-836c-44b2-b6bd-da5f604b7c3b"
+    },
+    {
+      "trial": 4,
+      "variant": 3,
+      "scores": [
+        3,
+        0,
+        0,
+        0
+      ],
+      "options": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "selector": "bd1f0540-ccad-4d61-8be5-538a32f4a77d",
+      "variant_transform": "94ddf7c8-0e86-4bc1-8a6f-b192d4e34cc6",
+      "answer_group": "b1516af4-a180-4527-9957-c5a3a145961e",
+      "score_group": "5a3f75a9-e67c-4689-833e-d88e446cbf1c"
+    }
+  ]
+}

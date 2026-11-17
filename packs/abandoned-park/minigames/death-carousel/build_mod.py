@@ -119,13 +119,13 @@ def build(name: str, workshop: str = WORKSHOP) -> str:
     if DEBRIS:
         debris_root = (obj("Debris")
                        .mover(MoverDir.CUSTOM, (0, -1, 0), DEBRIS_SPEED)
-                       .trigger(TriggerShape.SPHERE, radius=1.1,
-                                on_enter=[act_stun(1.5, Targets.SOURCE),
-                                          act_change_velocity(9.0, VelocityDir.TOWARDS_SOURCE, Op.SET),
-                                          act_change_velocity(5.0, VelocityDir.UP, Op.ADD)])
                        .logic(trig_enable(act_wait(DEBRIS_H / DEBRIS_SPEED),
                                           act_spawn_effect(Effect.EXPLOSION, Targets.RECEIVER),
                                           act_kill(Targets.RECEIVER))))
+        debris_root.add(obj('Contact').trigger(TriggerShape.SPHERE, radius=1.1,
+            on_enter=[act_stun(1.5, Targets.SOURCE),
+                      act_change_velocity(9.0, VelocityDir.TOWARDS_SOURCE, Op.SET),
+                      act_change_velocity(5.0, VelocityDir.UP, Op.ADD)]))
         debris_root.add(obj("Rock", scale=(1.6, 1.6, 1.6))   # add() возвращает ребёнка, поэтому корень держим отдельно
                         .prop(debris_obj.guid, collision=Collision.NONE, tint=(0.5, 0.45, 0.4, 1)))
         debris = mod.add_prefab(debris_root)

@@ -1,0 +1,13 @@
+{
+  "sequence": [
+    0,
+    2,
+    1,
+    0,
+    2,
+    1
+  ],
+  "warning_seconds": 1.5,
+  "hazard_seconds": 1,
+  "cooldown_seconds": 8
+}

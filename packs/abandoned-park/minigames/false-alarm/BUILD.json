@@ -1,0 +1,49 @@
+{
+  "duration": 57,
+  "signals": [
+    [
+      true,
+      0
+    ],
+    [
+      false,
+      2
+    ],
+    [
+      true,
+      1
+    ],
+    [
+      false,
+      0
+    ],
+    [
+      false,
+      1
+    ],
+    [
+      true,
+      2
+    ],
+    [
+      true,
+      0
+    ],
+    [
+      false,
+      2
+    ],
+    [
+      true,
+      1
+    ],
+    [
+      false,
+      0
+    ]
+  ],
+  "freeze_before_scoring": 0.15,
+  "slug": "false-alarm",
+  "name": "False Alarm",
+  "objects": 542
+}

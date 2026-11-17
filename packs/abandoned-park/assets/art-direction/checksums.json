@@ -1,0 +1,21 @@
+{
+  "contact-sheet.png": "d9a1038c3c7921e6550daa6e272f2edb1e303d5ef161560bfc7d27d7a1c16412",
+  "lighting/damp-service.json": "93ded63c9586b51746f5ffc91d05191d18bdc9bcdae44959eeccfa7fbd1da976",
+  "lighting/fog-night.json": "aaf1df807a1eb2de11ccbf4741619a07e7e999931784c2b41971858e39436863",
+  "lighting/neon-night.json": "38f78a70e1209a43dfdcd447fa6263c63850dbfe0dbd767655ea56541cc26c2b",
+  "lighting/overcast-day.json": "7ead0c837351bfbf81e3d67bce0ae1683158d97522f4f6a8dd79d670cbeba10f",
+  "lighting/rust-dusk.json": "e4c400067b1fcad066a0640699af8ac3fdfd3bd250cf7639984abbbbe1318c1f",
+  "materials.json": "d9f68b69e61e80998a33a5a4ba789425f212ece628daf49d1c57063cefce2210",
+  "surface_cube.obj": "fede3ab68910aafabb683c98679584542a95162aec859d6fb7c20e35035dee27",
+  "text-check.png": "506453d783a51ca7f6d95780957f0fd26aaef2675b2ce31a1a58fdc5ebfe0e4e",
+  "textures/cracked_concrete.png": "3fbaa5049ab4da11dabb46a3295b4e114b60d849a21fc9b834e30ad3f5769307",
+  "textures/old_wood.png": "7ee2027b743997635f50c52bc70aacd85aa6252cd1ea2b82ebb7896dc0765a2a",
+  "textures/paint_cream.png": "586f1cbc08320ce36590f2a7a89a5d7ed72212a0137df9959603f354763559fe",
+  "textures/paint_plum.png": "997ecda6b7a922eb874c162516862affb637dba4d9357e16dcf3cc7a31a74626",
+  "textures/paint_red.png": "eba9c4f21dcb02925c037dda8351540588d17ac6ce4d9acea2dd60612e5ff1e2",
+  "textures/paint_red_heavy.png": "3bfaabf6fbaec421b1845829a57641081909804eb08529c887ff7bcd4b95a33e",
+  "textures/paint_teal.png": "fef70d875ba189828117839855375607fb25d92686e7e5ddcaf402869d354549",
+  "textures/paint_teal_heavy.png": "9977420e92de930f1b5435c10c7805e5748932b35950ea0d8dbd151b00739933",
+  "textures/rust_iron.png": "2a52427310fc6a867f24d54cd064bdd92851cc7a2fc90f32c2c94ccc5a0108f1",
+  "textures/wet_asphalt.png": "8dfce6daa48d64957de48f8dc70476e51f9a0be3ddc4384b6cded3efa5b9ff93"
+}

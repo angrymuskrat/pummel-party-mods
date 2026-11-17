@@ -1,0 +1,14 @@
+{
+  "duration": 47.75,
+  "intervals": [
+    4,
+    6,
+    5,
+    7,
+    4.5
+  ],
+  "timer_ui": false,
+  "slug": "broken-clock",
+  "name": "Broken Clock",
+  "objects": 867
+}

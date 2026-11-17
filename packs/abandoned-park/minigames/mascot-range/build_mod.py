@@ -187,7 +187,7 @@ def build(name: str, workshop: str = WORKSHOP) -> str:
     for k, x in enumerate(POPUP["xs"]):
         p = popups.add(obj(f"PopUp_{k}"))
         t = target(p, "Target", (x, POPUP["y"], POPUP["z"]), POPUP["scale"], POPUP["tint"], POPUP["points"], active=False)
-        t.logic(trig_enable(act_wait(POPUP_UP), act_set_active(ActiveState.DISABLED, [t.transform_guid])))
+        t.add(obj('Lifetime').logic(trig_enable(act_wait(POPUP_UP), act_set_active(ActiveState.DISABLED, [t.transform_guid]))))
         p.logic(trig_timer(POPUP["every"][0], act_set_active(ActiveState.ENABLED, [t.transform_guid]),
                            max_interval=POPUP["every"][1]))
 

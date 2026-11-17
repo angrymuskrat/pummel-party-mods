@@ -1,0 +1,16 @@
+{
+  "duration": 57.5,
+  "sequence": [
+    0,
+    2,
+    1,
+    0,
+    2,
+    1
+  ],
+  "control_cycle": 10.5,
+  "hazard_duration": 1,
+  "slug": "trap-operators",
+  "name": "Trap Operators",
+  "objects": 450
+}

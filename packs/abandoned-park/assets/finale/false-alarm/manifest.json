@@ -1,0 +1,45 @@
+{
+  "signals": [
+    [
+      true,
+      0
+    ],
+    [
+      false,
+      2
+    ],
+    [
+      true,
+      1
+    ],
+    [
+      false,
+      0
+    ],
+    [
+      false,
+      1
+    ],
+    [
+      true,
+      2
+    ],
+    [
+      true,
+      0
+    ],
+    [
+      false,
+      2
+    ],
+    [
+      true,
+      1
+    ],
+    [
+      false,
+      0
+    ]
+  ],
+  "response_seconds": 4.5
+}

@@ -1,0 +1,72 @@
+{
+  "paint_teal": {
+    "albedo": "textures/paint_teal.png",
+    "smoothness": 0.25,
+    "metallic": 0.12,
+    "tile_metres": 2,
+    "seed": 310
+  },
+  "paint_red": {
+    "albedo": "textures/paint_red.png",
+    "smoothness": 0.22,
+    "metallic": 0.12,
+    "tile_metres": 2,
+    "seed": 311
+  },
+  "paint_cream": {
+    "albedo": "textures/paint_cream.png",
+    "smoothness": 0.2,
+    "metallic": 0.1,
+    "tile_metres": 2,
+    "seed": 312
+  },
+  "paint_plum": {
+    "albedo": "textures/paint_plum.png",
+    "smoothness": 0.23,
+    "metallic": 0.12,
+    "tile_metres": 2,
+    "seed": 313
+  },
+  "paint_teal_heavy": {
+    "albedo": "textures/paint_teal_heavy.png",
+    "smoothness": 0.15,
+    "metallic": 0.22,
+    "tile_metres": 2,
+    "seed": 314
+  },
+  "paint_red_heavy": {
+    "albedo": "textures/paint_red_heavy.png",
+    "smoothness": 0.15,
+    "metallic": 0.22,
+    "tile_metres": 2,
+    "seed": 315
+  },
+  "rust_iron": {
+    "albedo": "textures/rust_iron.png",
+    "smoothness": 0.17,
+    "metallic": 0.38,
+    "tile_metres": 2,
+    "seed": 316
+  },
+  "old_wood": {
+    "albedo": "textures/old_wood.png",
+    "smoothness": 0.12,
+    "metallic": 0,
+    "tile_metres": 2,
+    "seed": 317
+  },
+  "cracked_concrete": {
+    "albedo": "textures/cracked_concrete.png",
+    "smoothness": 0.12,
+    "metallic": 0,
+    "tile_metres": 4,
+    "seed": 318
+  },
+  "wet_asphalt": {
+    "albedo": "textures/wet_asphalt.png",
+    "smoothness": 0.58,
+    "metallic": 0,
+    "tile_metres": 4,
+    "seed": 319
+  }
+}

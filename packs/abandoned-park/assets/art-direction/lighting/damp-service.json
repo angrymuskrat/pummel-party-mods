@@ -1,0 +1,94 @@
+{
+  "version": 0,
+  "presetName": "Custom",
+  "stars": false,
+  "topColor": {
+    "r": 0.12549,
+    "g": 0.180392,
+    "b": 0.192157,
+    "a": 1.0
+  },
+  "horizonColor": {
+    "r": 0.301961,
+    "g": 0.376471,
+    "b": 0.356863,
+    "a": 1.0
+  },
+  "groundColor": {
+    "r": 0.121569,
+    "g": 0.172549,
+    "b": 0.168627,
+    "a": 1.0
+  },
+  "haloColor": {
+    "r": 0.7098039388656616,
+    "g": 0.6705882549285889,
+    "b": 0.5686274766921997,
+    "a": 1.0
+  },
+  "haloExponent": 6.0,
+  "haloStrength": 0.18,
+  "shadowDistance": 200.0,
+  "shadowCascades": 4,
+  "shadowCascade4Split": {
+    "x": 0.06700000166893005,
+    "y": 0.20000000298023224,
+    "z": 0.46700000762939453
+  },
+  "shadowProjection": 1,
+  "shadowCascade2Split": 0.20000000298023224,
+  "ambientMode": 1,
+  "ambientIntensity": 1.0,
+  "ambientSkyColor": {
+    "r": 0.431373,
+    "g": 0.501961,
+    "b": 0.501961,
+    "a": 1.0
+  },
+  "ambientEquatorColor": {
+    "r": 0.301961,
+    "g": 0.396078,
+    "b": 0.392157,
+    "a": 1.0
+  },
+  "ambientGroundColor": {
+    "r": 0.160784,
+    "g": 0.231373,
+    "b": 0.223529,
+    "a": 1.0
+  },
+  "fog": true,
+  "fogColor": {
+    "r": 0.258824,
+    "g": 0.333333,
+    "b": 0.313725,
+    "a": 1.0
+  },
+  "fogMode": 1,
+  "fogDensity": 0.009999999776482582,
+  "fogStartDistance": 55.0,
+  "fogEndDistance": 175.0,
+  "defaultReflectionMode": 0,
+  "reflectionIntensity": 0.35,
+  "cloudShadows": true,
+  "cloudSpeed1": 0.025,
+  "cloudSpeed2": 0.034,
+  "cloudStrength": 0.35,
+  "cloudScale": 140.0,
+  "cloudIntensity": 0.24,
+  "globalLightEnabled": true,
+  "globalLightRotation": {
+    "x": 130.0,
+    "y": 25.0,
+    "z": 0.0
+  },
+  "globalLightColor": {
+    "r": 0.701961,
+    "g": 0.780392,
+    "b": 0.72549,
+    "a": 1.0
+  },
+  "globalLightIntensity": 0.42,
+  "globalShadowItensity": 0.65,
+  "globalLightShadows": 2
+}

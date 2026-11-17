@@ -1,0 +1,24 @@
+{
+  "duration": 58.9,
+  "layouts": [
+    {
+      "reverse": false,
+      "token": 0,
+      "play_seconds": 16.2
+    },
+    {
+      "reverse": true,
+      "token": 1,
+      "play_seconds": 16.2
+    },
+    {
+      "reverse": false,
+      "token": 2,
+      "play_seconds": 16.2
+    }
+  ],
+  "safe_route_metres": 52,
+  "slug": "emergency-exit",
+  "name": "Emergency Exit",
+  "objects": 706
+}

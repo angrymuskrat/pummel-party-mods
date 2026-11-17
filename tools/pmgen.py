@@ -21,6 +21,7 @@ import shutil
 import struct
 import uuid
 from dataclasses import dataclass, field
+from pathlib import Path
 
 import pmscene as P
 
@@ -493,6 +494,19 @@ class Obj:
         ], enabled)
         return self
 
+    def light(self, color=(1, 1, 1, 1), intensity=1.0, radius=10.0,
+              kind=2, spot_angle=45.0, shadows=0) -> Obj:
+        """ModLight: Unity LightType Spot=0, Directional=1, Point=2; shadows 0/1/2.
+
+        Fields verified against ModLight and serialized built-in scenes.
+        """
+        self._comp("ModLight", [
+            ("type", enc_i32(kind)), ("color", enc_color(color)),
+            ("range", enc_f32(radius)), ("intensity", enc_f32(intensity)),
+            ("spotAngle", enc_f32(spot_angle)), ("shadows", enc_i32(shadows)),
+        ])
+        return self
+
     def trigger(self, shape=TriggerShape.BOX, size=(1, 1, 1), center=(0, 0, 0), radius=0.5, height=2.0,
                 on_enter: list | None = None, on_exit: list | None = None, on_stay: list | None = None,
                 on_hit: list | None = None, stay_interval=0.5, disable_after=False, one_use_per_player=False) -> Obj:
@@ -797,6 +811,11 @@ class Mod:
     music_guid: str | None = None      # аудио-ассет мода вместо музыки шаблона (SimpleMinigameSettings.MusicGUID); не проверено
     min_players: int = 2
     max_players: int = 8
+    # Profiles seed new projects; existing editor settings survive ordinary rebuilds.
+    # Opt in to replace_appearance only when deliberately applying a new profile.
+    lighting_profile: str | None = None
+    post_processing_profile: str | None = None
+    replace_appearance: bool = False
 
     def add(self, o: Obj) -> Obj:
         self.roots.append(o)
@@ -829,8 +848,27 @@ class Mod:
         data_dir = os.path.join(root, "Data")
         os.makedirs(data_dir, exist_ok=True)
         tpl = os.path.join(GAME_TEMPLATES, self.template, "Data")
-        for fn in ("Lighting.json", "PostProcessing.data"):
-            shutil.copyfile(os.path.join(tpl, fn), os.path.join(data_dir, fn))
+        old_meta = self._read_json(data_dir, "Meta.json") or {}
+        appearance_presets = {}
+        appearance_files = []
+        for fn, profile, preset_key in (
+                ("Lighting.json", self.lighting_profile, "SelectedLightingPreset"),
+                ("PostProcessing.data", self.post_processing_profile, "SelectedPostProcessingPreset")):
+            target = os.path.join(data_dir, fn)
+            if os.path.exists(target) and not (profile and self.replace_appearance):
+                continue
+            source = os.path.expandvars(os.fspath(profile)) if profile else os.path.join(tpl, fn)
+            with open(source, "rb") as fh:
+                payload = fh.read()
+            if fn == "Lighting.json":
+                json.loads(payload.decode("utf-8-sig"))
+            appearance_files.append((target, payload))
+            appearance_presets[preset_key] = "Custom" if profile else "Default"
+        # Read both profiles before replacing either file (a missing second file must not
+        # leave half-applied appearance). PostProcessing.data stays opaque game data.
+        for target, payload in appearance_files:
+            with open(target, "wb") as fh:
+                fh.write(payload)
         # Что пользователь задал в редакторе, пересборка не трогает:
         # - Data/Preview.jpg редактор перезаписывает снимком камеры сцены при каждом сохранении (EditorSystem.SavePreviewScreenshot);
         #   свой файл кладём, только если там пусто, шаблонная картинка или наш прошлый файл. Наш — PNG (Texture2D.LoadImage
@@ -838,11 +876,11 @@ class Mod:
         # - ScreenshotTextureGuid (Mod Settings → Minigame Details → Preview Image) и WorkshopItem.json (publishedFileId,
         #   Square Preview, видимость) берём из уже существующих файлов мода.
         preview = os.path.join(data_dir, "Preview.jpg")
-        current = open(preview, "rb").read() if os.path.exists(preview) else None
-        template_preview = open(os.path.join(tpl, "Preview.jpg"), "rb").read()
+        current = Path(preview).read_bytes() if os.path.exists(preview) else None
+        template_preview = Path(tpl, "Preview.jpg").read_bytes()
         if current is None or current == template_preview or current[:8] == PNG_SIGNATURE:
             with open(preview, "wb") as fh:
-                fh.write(open(self.preview_image, "rb").read() if self.preview_image else template_preview)
+                fh.write(Path(self.preview_image).read_bytes() if self.preview_image else template_preview)
         old_mdd = self._read_json(data_dir, "MinigameDefinitionData.json")
         old_workshop = self._read_json(data_dir, "WorkshopItem.json")
 
@@ -861,10 +899,13 @@ class Mod:
             with open(target + ".pmeta", "w", encoding="utf-8") as fh:
                 json.dump(a.pmeta(), fh, ensure_ascii=False, separators=(",", ":"))
 
-        self._write_json(data_dir, "Meta.json", {
+        meta = {
             "MetaDataVersion": 1, "ModVersion": 1, "ModCreatedVersion": 1, "Name": self.name, "ModType": 3,
-            "LastModified": _dt.datetime.now().astimezone().isoformat(),
-            "SelectedLightingPreset": "Default", "SelectedPostProcessingPreset": "Default", "IsUnlocked": False})
+            "SelectedLightingPreset": "Default", "SelectedPostProcessingPreset": "Default", "IsUnlocked": False}
+        meta.update(old_meta)
+        meta.update(appearance_presets)
+        meta.update(Name=self.name, LastModified=_dt.datetime.now().astimezone().isoformat())
+        self._write_json(data_dir, "Meta.json", meta)
         if old_workshop is None:
             self._write_json(data_dir, "WorkshopItem.json", {
                 "Version": 0, "title": self.name, "description": self.description, "language": "english", "metaData": "",
