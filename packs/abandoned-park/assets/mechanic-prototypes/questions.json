@@ -1,0 +1,506 @@
+[
+  {
+    "trial": 0,
+    "variant": 0,
+    "stem": "t0_v0",
+    "options": [
+      1,
+      2,
+      3,
+      4
+    ],
+    "answer": 0,
+    "buttons": 3,
+    "ears": "square",
+    "difference": "ears",
+    "scores": [
+      2,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "trial": 0,
+    "variant": 1,
+    "stem": "t0_v1",
+    "options": [
+      1,
+      2,
+      3,
+      4
+    ],
+    "answer": 2,
+    "buttons": 2,
+    "ears": "round",
+    "difference": "buttons",
+    "scores": [
+      0,
+      0,
+      2,
+      0
+    ]
+  },
+  {
+    "trial": 0,
+    "variant": 2,
+    "stem": "t0_v2",
+    "options": [
+      1,
+      2,
+      3,
+      4
+    ],
+    "answer": 3,
+    "buttons": 3,
+    "ears": "square",
+    "difference": "ears",
+    "scores": [
+      0,
+      0,
+      0,
+      2
+    ]
+  },
+  {
+    "trial": 0,
+    "variant": 3,
+    "stem": "t0_v3",
+    "options": [
+      1,
+      2,
+      3,
+      4
+    ],
+    "answer": 0,
+    "buttons": 1,
+    "ears": "round",
+    "difference": "buttons",
+    "scores": [
+      2,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "trial": 1,
+    "variant": 0,
+    "stem": "t1_v0",
+    "options": [
+      1,
+      2,
+      3,
+      4
+    ],
+    "answer": 1,
+    "buttons": 2,
+    "ears": "round",
+    "difference": "buttons",
+    "scores": [
+      0,
+      2,
+      0,
+      0
+    ]
+  },
+  {
+    "trial": 1,
+    "variant": 1,
+    "stem": "t1_v1",
+    "options": [
+      1,
+      2,
+      3,
+      4
+    ],
+    "answer": 0,
+    "buttons": 3,
+    "ears": "square",
+    "difference": "ears",
+    "scores": [
+      2,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "trial": 1,
+    "variant": 2,
+    "stem": "t1_v2",
+    "options": [
+      1,
+      2,
+      3,
+      4
+    ],
+    "answer": 3,
+    "buttons": 1,
+    "ears": "square",
+    "difference": "buttons",
+    "scores": [
+      0,
+      0,
+      0,
+      2
+    ]
+  },
+  {
+    "trial": 1,
+    "variant": 3,
+    "stem": "t1_v3",
+    "options": [
+      1,
+      2,
+      3,
+      4
+    ],
+    "answer": 1,
+    "buttons": 3,
+    "ears": "square",
+    "difference": "ears",
+    "scores": [
+      0,
+      2,
+      0,
+      0
+    ]
+  },
+  {
+    "trial": 2,
+    "variant": 0,
+    "stem": "t2_v0",
+    "options": [
+      1,
+      2,
+      3,
+      4
+    ],
+    "answer": 0,
+    "buttons": 2,
+    "ears": "square",
+    "difference": "ears",
+    "scores": [
+      2,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "trial": 2,
+    "variant": 1,
+    "stem": "t2_v1",
+    "options": [
+      1,
+      2,
+      3,
+      4
+    ],
+    "answer": 3,
+    "buttons": 1,
+    "ears": "square",
+    "difference": "buttons",
+    "scores": [
+      0,
+      0,
+      0,
+      2
+    ]
+  },
+  {
+    "trial": 2,
+    "variant": 2,
+    "stem": "t2_v2",
+    "options": [
+      1,
+      2,
+      3,
+      4
+    ],
+    "answer": 2,
+    "buttons": 2,
+    "ears": "round",
+    "difference": "ears",
+    "scores": [
+      0,
+      0,
+      2,
+      0
+    ]
+  },
+  {
+    "trial": 2,
+    "variant": 3,
+    "stem": "t2_v3",
+    "options": [
+      1,
+      2,
+      3,
+      4
+    ],
+    "answer": 2,
+    "buttons": 1,
+    "ears": "square",
+    "difference": "buttons",
+    "scores": [
+      0,
+      0,
+      2,
+      0
+    ]
+  },
+  {
+    "trial": 3,
+    "variant": 0,
+    "stem": "t3_v0",
+    "options": [
+      1,
+      2,
+      3,
+      4
+    ],
+    "answer": 0,
+    "buttons": 3,
+    "ears": "round",
+    "difference": "buttons",
+    "scores": [
+      2,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "trial": 3,
+    "variant": 1,
+    "stem": "t3_v1",
+    "options": [
+      1,
+      2,
+      3,
+      4
+    ],
+    "answer": 0,
+    "buttons": 3,
+    "ears": "round",
+    "difference": "ears",
+    "scores": [
+      2,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "trial": 3,
+    "variant": 2,
+    "stem": "t3_v2",
+    "options": [
+      1,
+      2,
+      3,
+      4
+    ],
+    "answer": 1,
+    "buttons": 2,
+    "ears": "square",
+    "difference": "buttons",
+    "scores": [
+      0,
+      2,
+      0,
+      0
+    ]
+  },
+  {
+    "trial": 3,
+    "variant": 3,
+    "stem": "t3_v3",
+    "options": [
+      1,
+      2,
+      3,
+      4
+    ],
+    "answer": 3,
+    "buttons": 3,
+    "ears": "round",
+    "difference": "ears",
+    "scores": [
+      0,
+      0,
+      0,
+      2
+    ]
+  },
+  {
+    "trial": 4,
+    "variant": 0,
+    "stem": "t4_v0",
+    "options": [
+      1,
+      2,
+      3,
+      4
+    ],
+    "answer": 0,
+    "buttons": 3,
+    "ears": "square",
+    "difference": "ears",
+    "scores": [
+      2,
+      0,
+      0,
+      0
+    ]
+  },
+  {
+    "trial": 4,
+    "variant": 1,
+    "stem": "t4_v1",
+    "options": [
+      1,
+      2,
+      3,
+      4
+    ],
+    "answer": 2,
+    "buttons": 3,
+    "ears": "round",
+    "difference": "buttons",
+    "scores": [
+      0,
+      0,
+      2,
+      0
+    ]
+  },
+  {
+    "trial": 4,
+    "variant": 2,
+    "stem": "t4_v2",
+    "options": [
+      1,
+      2,
+      3,
+      4
+    ],
+    "answer": 1,
+    "buttons": 3,
+    "ears": "round",
+    "difference": "ears",
+    "scores": [
+      0,
+      2,
+      0,
+      0
+    ]
+  },
+  {
+    "trial": 4,
+    "variant": 3,
+    "stem": "t4_v3",
+    "options": [
+      1,
+      2,
+      3,
+      4
+    ],
+    "answer": 3,
+    "buttons": 3,
+    "ears": "round",
+    "difference": "buttons",
+    "scores": [
+      0,
+      0,
+      0,
+      2
+    ]
+  },
+  {
+    "trial": 5,
+    "variant": 0,
+    "stem": "t5_v0",
+    "options": [
+      1,
+      2,
+      3,
+      4
+    ],
+    "answer": 3,
+    "buttons": 3,
+    "ears": "square",
+    "difference": "buttons",
+    "scores": [
+      0,
+      0,
+      0,
+      2
+    ]
+  },
+  {
+    "trial": 5,
+    "variant": 1,
+    "stem": "t5_v1",
+    "options": [
+      1,
+      2,
+      3,
+      4
+    ],
+    "answer": 2,
+    "buttons": 1,
+    "ears": "round",
+    "difference": "ears",
+    "scores": [
+      0,
+      0,
+      2,
+      0
+    ]
+  },
+  {
+    "trial": 5,
+    "variant": 2,
+    "stem": "t5_v2",
+    "options": [
+      1,
+      2,
+      3,
+      4
+    ],
+    "answer": 1,
+    "buttons": 3,
+    "ears": "square",
+    "difference": "buttons",
+    "scores": [
+      0,
+      2,
+      0,
+      0
+    ]
+  },
+  {
+    "trial": 5,
+    "variant": 3,
+    "stem": "t5_v3",
+    "options": [
+      1,
+      2,
+      3,
+      4
+    ],
+    "answer": 2,
+    "buttons": 2,
+    "ears": "round",
+    "difference": "ears",
+    "scores": [
+      0,
+      0,
+      2,
+      0
+    ]
+  }
+]

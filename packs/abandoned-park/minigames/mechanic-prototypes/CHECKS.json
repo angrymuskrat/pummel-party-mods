@@ -1,0 +1,35 @@
+{
+  "structural": [
+    {
+      "name": "Rusted Park Probe - Mascot Carts V3",
+      "objects": 2936,
+      "prefabs": 2,
+      "assets": 125,
+      "scene_sha256": "6d490e7f7ba2f11996053ce6d638c53f25a2d9e752909b274f6cc4eb53c37692",
+      "errors": [],
+      "warnings": []
+    },
+    {
+      "name": "Rusted Park Probe - Barrel Bends V3",
+      "objects": 151,
+      "prefabs": 30,
+      "assets": 55,
+      "scene_sha256": "cba6a9cad92301704bb11368a72dbc1fdfdb20bd91f423569a430be4efb0f6e3",
+      "errors": [],
+      "warnings": []
+    }
+  ],
+  "carts": {
+    "visible_answers_checked": 768,
+    "maps": 8,
+    "moving_figurines_checked": 64,
+    "full_braking_finishes_before_timeout": true
+  },
+  "barrels": {
+    "trajectories_checked": 30,
+    "swept_sphere_samples": 6030,
+    "random_emitters": 10,
+    "rise": 28.6
+  },
+  "runtime": "Not exercised: finish sensors, camera, network and bot behaviour need playtest."
+}

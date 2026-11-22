@@ -12,6 +12,8 @@ import sys
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "..", ".."))
 sys.path.insert(0, os.path.join(ROOT, "tools"))
 sys.path.insert(0, os.path.join(ROOT, ".claude", "skills", "pummel-party-level-design", "scripts"))
+sys.path.insert(0, os.path.join(ROOT, "packs", "abandoned-park", "assets", "art-direction"))
+from core_style import style_project
 from pmgen import *  # noqa: E402,F403
 import plan_view  # noqa: E402
 
@@ -353,6 +355,7 @@ def build(name: str, workshop: str = WORKSHOP) -> str:
     table.append(f"плоты: ближние ({near_l[0]:.1f}, {near_l[1]:.1f}) и ({near_r[0]:.1f}, {near_r[1]:.1f}), "
                  f"дальний ({far[0]:.1f}, {far[1]:.1f})")
     mod.add(obj("Notes").note("Сгенерировано build_mod.py из packs/abandoned-park/minigames/cannonball/DESIGN.md\n" + "\n".join(table)))
+    new_lighting = not os.path.isfile(os.path.join(os.path.expandvars(workshop), name, "Data", "Lighting.json"))
     out = mod.write(workshop)
 
     os.makedirs(os.path.join(HERE, "plan"), exist_ok=True)
@@ -360,7 +363,7 @@ def build(name: str, workshop: str = WORKSHOP) -> str:
     plan_view.render_preview(out, mod.preview_image)
     for line in table:
         print(line)
-    return mod.write(workshop)
+    return style_project(mod.write(workshop), "Human Cannonball", replace_lighting=new_lighting)
 
 
 if __name__ == "__main__":

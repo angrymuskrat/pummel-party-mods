@@ -1,0 +1,218 @@
+[
+  {
+    "model": "square_3",
+    "choices": [
+      "round_3",
+      "square_3",
+      "square_3",
+      "square_3"
+    ]
+  },
+  {
+    "model": "round_2",
+    "choices": [
+      "round_2",
+      "round_2",
+      "round_3",
+      "round_2"
+    ]
+  },
+  {
+    "model": "square_3",
+    "choices": [
+      "square_3",
+      "square_3",
+      "square_3",
+      "round_3"
+    ]
+  },
+  {
+    "model": "round_1",
+    "choices": [
+      "round_2",
+      "round_1",
+      "round_1",
+      "round_1"
+    ]
+  },
+  {
+    "model": "round_2",
+    "choices": [
+      "round_2",
+      "round_3",
+      "round_2",
+      "round_2"
+    ]
+  },
+  {
+    "model": "square_3",
+    "choices": [
+      "round_3",
+      "square_3",
+      "square_3",
+      "square_3"
+    ]
+  },
+  {
+    "model": "square_1",
+    "choices": [
+      "square_1",
+      "square_1",
+      "square_1",
+      "square_2"
+    ]
+  },
+  {
+    "model": "square_3",
+    "choices": [
+      "square_3",
+      "round_3",
+      "square_3",
+      "square_3"
+    ]
+  },
+  {
+    "model": "square_2",
+    "choices": [
+      "round_2",
+      "square_2",
+      "square_2",
+      "square_2"
+    ]
+  },
+  {
+    "model": "square_1",
+    "choices": [
+      "square_1",
+      "square_1",
+      "square_1",
+      "square_2"
+    ]
+  },
+  {
+    "model": "round_2",
+    "choices": [
+      "round_2",
+      "round_2",
+      "square_2",
+      "round_2"
+    ]
+  },
+  {
+    "model": "square_1",
+    "choices": [
+      "square_1",
+      "square_1",
+      "square_2",
+      "square_1"
+    ]
+  },
+  {
+    "model": "round_3",
+    "choices": [
+      "round_1",
+      "round_3",
+      "round_3",
+      "round_3"
+    ]
+  },
+  {
+    "model": "round_3",
+    "choices": [
+      "square_3",
+      "round_3",
+      "round_3",
+      "round_3"
+    ]
+  },
+  {
+    "model": "square_2",
+    "choices": [
+      "square_2",
+      "square_3",
+      "square_2",
+      "square_2"
+    ]
+  },
+  {
+    "model": "round_3",
+    "choices": [
+      "round_3",
+      "round_3",
+      "round_3",
+      "square_3"
+    ]
+  },
+  {
+    "model": "square_3",
+    "choices": [
+      "round_3",
+      "square_3",
+      "square_3",
+      "square_3"
+    ]
+  },
+  {
+    "model": "round_3",
+    "choices": [
+      "round_3",
+      "round_3",
+      "round_1",
+      "round_3"
+    ]
+  },
+  {
+    "model": "round_3",
+    "choices": [
+      "round_3",
+      "square_3",
+      "round_3",
+      "round_3"
+    ]
+  },
+  {
+    "model": "round_3",
+    "choices": [
+      "round_3",
+      "round_3",
+      "round_3",
+      "round_1"
+    ]
+  },
+  {
+    "model": "square_3",
+    "choices": [
+      "square_3",
+      "square_3",
+      "square_3",
+      "square_1"
+    ]
+  },
+  {
+    "model": "round_1",
+    "choices": [
+      "round_1",
+      "round_1",
+      "square_1",
+      "round_1"
+    ]
+  },
+  {
+    "model": "square_3",
+    "choices": [
+      "square_3",
+      "square_1",
+      "square_3",
+      "square_3"
+    ]
+  },
+  {
+    "model": "round_2",
+    "choices": [
+      "round_2",
+      "round_2",
+      "square_2",
+      "round_2"
+    ]
+  }
+]

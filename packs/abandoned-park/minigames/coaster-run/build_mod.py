@@ -12,6 +12,8 @@ import sys
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "..", ".."))
 sys.path.insert(0, os.path.join(ROOT, "tools"))
 sys.path.insert(0, os.path.join(ROOT, ".claude", "skills", "pummel-party-level-design", "scripts"))
+sys.path.insert(0, os.path.join(ROOT, "packs", "abandoned-park", "assets", "art-direction"))
+from core_style import style_project
 from pmgen import *  # noqa: E402,F403
 import plan_view  # noqa: E402
 
@@ -443,6 +445,7 @@ def build(name: str, workshop: str = WORKSHOP) -> str:
     edges += [(len(main) + k, hub) for k in range(len(ditch_nav))]
     edges += [(hub, hub + 1), (hub + 1, hub + 2), (hub + 2, hub + 3), (hub + 3, 0)]
     link_ai_nodes(nodes, edges)
+    new_lighting = not os.path.isfile(os.path.join(os.path.expandvars(workshop), name, "Data", "Lighting.json"))
     out = mod.write(workshop)
 
     # --- превью для окна Load a saved mod: план сверху
@@ -450,7 +453,7 @@ def build(name: str, workshop: str = WORKSHOP) -> str:
     mod.preview_image = os.path.join(HERE, "plan", "preview.png")
     plan_view.render_preview(out, mod.preview_image)
     print(f"сетка ботов: {len(nodes)} узлов, {len(edges)} связей")
-    return mod.write(workshop)
+    return style_project(mod.write(workshop), "Coaster Run", replace_lighting=new_lighting)
 
 
 if __name__ == "__main__":

@@ -13,6 +13,8 @@ import sys
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "..", ".."))
 sys.path.insert(0, os.path.join(ROOT, "tools"))
 sys.path.insert(0, os.path.join(ROOT, ".claude", "skills", "pummel-party-level-design", "scripts"))
+sys.path.insert(0, os.path.join(ROOT, "packs", "abandoned-park", "assets", "art-direction"))
+from core_style import style_project
 from pmgen import *  # noqa: E402,F403
 import plan_view  # noqa: E402
 
@@ -316,12 +318,13 @@ def build(name: str, workshop: str = WORKSHOP) -> str:
     mod.add(obj("Announcer").logic(trig_round_start(
         act_wait(T_CRACK), act_show_message("Пол у стен трещит! / The floor by the walls is cracking!", 2.0))))
     mod.add(obj("Notes").note("Сгенерировано build_mod.py из packs/abandoned-park/minigames/tilt-house/DESIGN.md"))
+    new_lighting = not os.path.isfile(os.path.join(os.path.expandvars(workshop), name, "Data", "Lighting.json"))
     out = mod.write(workshop)
 
     os.makedirs(os.path.join(HERE, "plan"), exist_ok=True)
     mod.preview_image = os.path.join(HERE, "plan", "preview.png")
     plan_view.render_preview(out, mod.preview_image)
-    return mod.write(workshop)
+    return style_project(mod.write(workshop), "Tilt House", replace_lighting=new_lighting)
 
 
 def print_schedule():

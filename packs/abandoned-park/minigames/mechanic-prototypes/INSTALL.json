@@ -1,0 +1,16 @@
+{
+  "installed": [
+    {
+      "name": "Rusted Park Probe - Mascot Carts V3",
+      "files": 258,
+      "scene_sha256": "6d490e7f7ba2f11996053ce6d638c53f25a2d9e752909b274f6cc4eb53c37692"
+    },
+    {
+      "name": "Rusted Park Probe - Barrel Bends V3",
+      "files": 118,
+      "scene_sha256": "cba6a9cad92301704bb11368a72dbc1fdfdb20bd91f423569a430be4efb0f6e3"
+    }
+  ],
+  "date": "2026-11-21",
+  "runtime_status": "pending user playtest"
+}

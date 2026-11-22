@@ -12,6 +12,8 @@ import sys
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "..", ".."))
 sys.path.insert(0, os.path.join(ROOT, "tools"))
 sys.path.insert(0, os.path.join(ROOT, ".claude", "skills", "pummel-party-level-design", "scripts"))
+sys.path.insert(0, os.path.join(ROOT, "packs", "abandoned-park", "assets", "art-direction"))
+from core_style import style_project
 from pmgen import *  # noqa: E402,F403
 import plan_view  # noqa: E402
 
@@ -302,13 +304,14 @@ def build(name: str, workshop: str = WORKSHOP) -> str:
             act_set_color((1.0, 0.2, 0.1, 1.0), targets=[column.transform_guid]),
             act_set_active(ActiveState.ENABLED, [shock.transform_guid]))))
     mod.add(obj("Notes").note("Сгенерировано build_mod.py из packs/abandoned-park/minigames/death-carousel/DESIGN.md"))
+    new_lighting = not os.path.isfile(os.path.join(os.path.expandvars(workshop), name, "Data", "Lighting.json"))
     out = mod.write(workshop)
 
     # --- превью для окна Load a saved mod: план сверху
     os.makedirs(os.path.join(HERE, "plan"), exist_ok=True)
     mod.preview_image = os.path.join(HERE, "plan", "preview.png")
     plan_view.render_preview(out, mod.preview_image)
-    return mod.write(workshop)
+    return style_project(mod.write(workshop), "Death Carousel", replace_lighting=new_lighting)
 
 
 if __name__ == "__main__":

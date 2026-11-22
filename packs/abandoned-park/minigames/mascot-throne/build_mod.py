@@ -12,6 +12,8 @@ import sys
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "..", ".."))
 sys.path.insert(0, os.path.join(ROOT, "tools"))
 sys.path.insert(0, os.path.join(ROOT, ".claude", "skills", "pummel-party-level-design", "scripts"))
+sys.path.insert(0, os.path.join(ROOT, "packs", "abandoned-park", "assets", "art-direction"))
+from core_style import style_project
 from pmgen import *  # noqa: E402,F403
 import navgen  # noqa: E402
 import plan_view  # noqa: E402
@@ -423,6 +425,7 @@ def build(name: str, workshop: str = WORKSHOP) -> str:
                  + "; красная " + ", ".join(f"{k} +{a:.1f}–{b:.1f}" for k, a, b in red))
     mod.add(obj("Notes").note("Сгенерировано build_mod.py из packs/abandoned-park/minigames/mascot-throne/DESIGN.md\n"
                               "Расписание корон: " + plan_text))
+    new_lighting = not os.path.isfile(os.path.join(os.path.expandvars(workshop), name, "Data", "Lighting.json"))
     out = mod.write(workshop)
 
     os.makedirs(os.path.join(HERE, "plan"), exist_ok=True)
@@ -457,7 +460,7 @@ def build(name: str, workshop: str = WORKSHOP) -> str:
         print("сетка ботов:", w)
     print(f"сетка ботов: {len(node_objs) - 1} узлов + цель, {len(edges)} связей")
     print("расписание корон:", plan_text)
-    return mod.write(workshop)
+    return style_project(mod.write(workshop), "Mascot Throne", replace_lighting=new_lighting)
 
 
 if __name__ == "__main__":

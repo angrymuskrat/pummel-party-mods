@@ -1,0 +1,20 @@
+{
+  "date": "2026-11-21",
+  "source": "WorkshopMods",
+  "projects": [
+    {
+      "project": "Rusted Park Probe - Mascot Carts V3",
+      "files": 258,
+      "scene_sha256": "31cd9d4bb3a7a267f11904dbbb716ddae3c8d0f6e275102c1dc8ff1533eb224f",
+      "archive": "Rusted Park Probe - Mascot Carts V3.zip",
+      "archive_sha256": "331850642d82e4a4de4105f4faa8036e6a25d87c2f62fcd26c0b68ce4f1bbd31"
+    },
+    {
+      "project": "Rusted Park Probe - Barrel Bends V3",
+      "files": 118,
+      "scene_sha256": "7d3afa80b505b4666e219df69f831e580f448fa36c0eed6988e5596ec79b4aaf",
+      "archive": "Rusted Park Probe - Barrel Bends V3.zip",
+      "archive_sha256": "3f8ab4883873a283173b96086571bb26be529745225b0c31be6fca7f3499656f"
+    }
+  ]
+}
