@@ -1,4 +1,8 @@
-"""Read-only structural audit of the 27 Rusted Park editor projects."""
+"""Read-only structural audit of the Rusted Park editor projects.
+
+NAMES lists every game the pack has shipped; projects moved out of the
+workshop folder (WorkshopMods_archive) are reported as skipped, not failed.
+"""
 from pathlib import Path
 import hashlib, json, re, struct, sys, wave, zlib
 import pmscene as P
@@ -43,6 +47,7 @@ def audit(folder, overlay=None):
     results=[]
     for name in NAMES:
         root=overlay/name if overlay and (overlay/name).exists() else folder/name
+        if not (root/'Data/MainScene.scene').exists(): continue
         errors=[]; warnings=[]; defs=[]; refs=set(); objects=[]
         for f in [root/'Data/MainScene.scene']+list(root.rglob('*.pfab')):
             s=P.load(str(f)); assert P.serialize(s)==f.read_bytes(),f
@@ -84,4 +89,7 @@ if __name__=='__main__':
     results=audit(folder)
     if len(sys.argv)>2: Path(sys.argv[2]).write_text(json.dumps(results,indent=2,ensure_ascii=False),encoding='utf-8')
     for r in results: print(r['name'], 'FAIL' if r['errors'] else 'PASS', '; '.join(r['errors']+r['warnings']))
+    audited={r['name'] for r in results}
+    for name in NAMES:
+        if name not in audited: print(name, 'SKIP', 'not in', folder)
     sys.exit(int(any(r['errors'] for r in results)))
